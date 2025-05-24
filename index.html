@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>チャットサイト</title>
     <style>
-        /* --- 基本スタイル (前回から微調整) --- */
+        /* --- 基本スタイル --- */
         :root {
             --app-overall-bg: #f0f2f5;
             --talk-list-bg: #ffffff;
             --current-chat-bg: #fdf6e9; /* デフォルトはマコさんテーマの背景 */
             --current-chat-accent: #E67E22; /* デフォルトはマコさんテーマのアクセント */
             --current-user-bubble-bg: #f0dcb3; /* デフォルトはマコさんテーマのユーザー吹き出し */
-            --current-header-icon-color: var(--current-chat-accent); /* ヘッダーテキストボタンに影響 */
+            --current-header-icon-color: var(--current-chat-accent); /* ヘッダーテキストボタンに影響 (現在は画像なので直接は影響しない) */
             --ai-bubble-bg: #ffffff;
             --ai-bubble-border: #e8e8e8;
             --header-text-color: #1c1e21; /* 少し濃いめの黒 */
@@ -21,111 +21,426 @@
             --light-border-color: #f0f0f0; /* 薄い境界線 */
             --inactive-text: #888888;
         }
-        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--app-overall-bg); color: var(--text-color); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        #app { display: flex; flex-direction: column; flex-grow: 1; height: 100%; }
-        .screen { display: none; /* 通常は非表示 */ flex-direction: column; height: 100%; /* 親(#app)の高さ一杯に広がる */ }
-        .screen.active { display: flex; /* アクティブな画面のみ表示 */ }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--app-overall-bg);
+            color: var(--text-color);
+            display: flex; /*  全体の高さを100vhにするため */
+            flex-direction: column;
+            height: 100vh; /* ビューポートの高さに固定 */
+            overflow: hidden; /* body自体のスクロールを禁止 */
+        }
+        #app {
+            display: flex; /* screenを縦に並べるため */
+            flex-direction: column;
+            flex-grow: 1; /* bodyの残りスペースを全て使う */
+            height: 100%; /* 親(body)の高さ一杯に広がる */
+            overflow: hidden; /* #app自体のスクロールも禁止 */
+        }
+        .screen {
+            display: none; /* 通常は非表示 */
+            flex-direction: column; /* header, main, footerを縦に並べる */
+            height: 100%; /* 親(#app)の高さ一杯に広がる */
+            overflow: hidden; /* screen自体のスクロールも禁止 (mainでスクロール制御) */
+        }
+        .screen.active {
+            display: flex; /* アクティブな画面のみ表示 */
+        }
         /* 各スクリーンの背景色設定 */
         #talk-list-screen { background-color: var(--talk-list-bg); }
-        #chat-screen { background-color: var(--current-chat-bg); } /* JSで動的更新 */
-        #member-settings-screen { background-color: var(--current-chat-bg); } /* JSで動的更新 */
+        #chat-screen { background-color: var(--current-chat-bg); }
+        #member-settings-screen { background-color: var(--current-chat-bg); }
         #common-settings-screen, #profile-screen { background-color: var(--talk-list-bg); }
 
 
-        header { padding: 8px 12px; /* 少しコンパクトに */ border-bottom: 1px solid var(--border-color); display: flex; align-items: center; flex-shrink: 0; /* 高さを固定 */ min-height: 48px; box-sizing: border-box; position: relative; /* 子要素のabsolute配置のため */ }
-        /* トーク一覧のヘッダー */
-        #talk-list-screen header { background-color: #f7f7f7; /* 画像に近い白っぽい背景 */ border-bottom: 1px solid #e7e7e7; }
-        #talk-list-screen header h1 { text-align: left; font-size: 1.5em; /* 画像の「トーク」のサイズ感 */ font-weight: bold; padding-left: 8px; color: var(--header-text-color); flex-grow:1; }
-        /* チャット画面とメンバー設定画面のヘッダー */
-        #chat-screen header, #member-settings-screen header { background-color: var(--current-chat-bg); /* テーマカラーの背景 */ border-bottom-color: transparent; /* 画像では境界線が見えない */ min-height: 50px; }
-        #chat-screen header h2, #member-settings-screen header h2 { /* メンバー名 */ font-size: 1.1em; font-weight: 600; color: var(--header-text-color); text-align: center; flex-grow: 1; /* 中央に配置するために必要 */ /* ボタンの幅を考慮して中央寄せ */ position: absolute; left: 60px; /* 左ボタンのスペース */ right: 60px; /* 右ボタンのスペース */ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        header {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            flex-shrink: 0; /* 高さを固定 (固定レイアウトのキー) */
+            min-height: 48px;
+            box-sizing: border-box;
+            position: relative;
+        }
+        #talk-list-screen header {
+            background-color: #f7f7f7;
+            border-bottom: 1px solid #e7e7e7;
+        }
+        #talk-list-screen header h1 {
+            text-align: left;
+            font-size: 1.5em;
+            font-weight: bold;
+            padding-left: 8px;
+            color: var(--header-text-color);
+            flex-grow:1;
+        }
+        #chat-screen header, #member-settings-screen header {
+            background-color: var(--current-chat-bg);
+            border-bottom-color: transparent;
+            min-height: 50px;
+        }
+        #chat-screen header h2, #member-settings-screen header h2 {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: var(--header-text-color);
+            text-align: center;
+            flex-grow: 1;
+            position: absolute;
+            left: 60px;
+            right: 60px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
 
-        header button { /* ヘッダー内の共通ボタン設定 */ background: none; border: none; cursor: pointer; padding: 0; display:flex; align-items:center; justify-content:center; min-width: 36px; min-height:36px; }
-        header button img { height: 22px; width:auto; /* アイコンサイズ調整 */}
-        /* チャット/設定画面のヘッダーアイコンの色をテーマカラーに */
-        /* #chat-screen header button, #member-settings-screen header button { color: var(--current-header-icon-color); } 画像なので不要 */
-        #chat-screen header .left-buttons, #member-settings-screen header .left-buttons { position: absolute; left: 10px; top:50%; transform: translateY(-50%); }
-        #chat-screen header .right-buttons { position: absolute; right: 10px; top:50%; transform: translateY(-50%); display:flex; gap: 10px;}
+        header button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            min-width: 36px;
+            min-height:36px;
+        }
+        header button img {
+            height: 22px;
+            width:auto;
+        }
+        #chat-screen header .left-buttons, #member-settings-screen header .left-buttons {
+            position: absolute;
+            left: 10px;
+            top:50%;
+            transform: translateY(-50%);
+        }
+        #chat-screen header .right-buttons {
+            position: absolute;
+            right: 10px;
+            top:50%;
+            transform: translateY(-50%);
+            display:flex;
+            gap: 10px;
+        }
 
 
-        main { flex-grow: 1; /* 可変高さ、残りのスペースを全て使用 */ overflow-y: auto; /* 内容が多い場合にスクロール */ -webkit-overflow-scrolling: touch; /* iOSでの慣性スクロール */ }
-        #talk-list-screen main { padding: 0; } /* リストなのでmain自体のpaddingは不要 */
-        #chat-screen main { padding: 10px 0 0 0; } /* チャットメッセージコンテナ用 padding-bottomはメッセージコンテナで */
+        main {
+            flex-grow: 1; /* 可変高さ、残りのスペースを全て使用 (固定レイアウトのキー) */
+            overflow-y: auto; /* 内容が多い場合にスクロール (固定レイアウトのキー) */
+            -webkit-overflow-scrolling: touch; /* iOSでの慣性スクロール */
+        }
+        #talk-list-screen main { padding: 0; }
+        #chat-screen main { padding: 10px 0 0 0; } /* 上パディングのみ、左右と下は内部要素で */
         #member-settings-screen main { padding: 15px; }
 
 
-        /* フッターの共通スタイル */
-        .screen > footer { border-top: 1px solid var(--border-color); padding: 0; /* 個別に設定 */ display: flex; align-items: center; flex-shrink: 0; /* 高さを固定 */ background-color: #f7f7f7; /* 基本フッター背景 */ }
+        /* フッターの共通スタイル (トーク一覧画面用) */
+        #talk-list-screen > footer {
+            border-top: 1px solid #dadada;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            flex-shrink: 0; /* 高さを固定 (固定レイアウトのキー) */
+            background-color: #f7f7f7;
+            height: 52px;
+            box-sizing: border-box;
+        }
+        #talk-list-screen footer button {
+            flex-direction: column;
+            font-size: 0.65em;
+            color: var(--inactive-text);
+            padding: 4px 0;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            background:none;
+            border:none;
+            cursor:pointer;
+        }
+        #talk-list-screen footer button img {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 2px;
+        }
+        #talk-list-screen footer button span {
+            display:block;
+        }
 
-        /* --- Talk List Screen (画像1枚目) --- */
-        #member-list { list-style: none; padding: 0; margin: 0; }
-        .member-item { display: flex; align-items: center; padding: 10px 15px; border-bottom: 1px solid var(--light-border-color); cursor: pointer; background-color: var(--talk-list-bg); /* 白背景 */ }
+        /* --- Talk List Screen --- */
+        #member-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .member-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--light-border-color);
+            cursor: pointer;
+            background-color: var(--talk-list-bg);
+        }
         .member-item:active { background-color: #f0f0f0; }
-        .member-item:last-child { border-bottom: none; }
+        .member-icon-container {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            margin-right: 12px;
+            border-width: 2.5px;
+            border-style: solid;
+            flex-shrink: 0;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            overflow:hidden;
+            background-color: #eee;
+        }
+        .member-icon-container img {
+            width:100%;
+            height:100%;
+            object-fit:cover;
+        }
+        .member-name {
+            flex-grow: 1;
+            font-size: 1.05em;
+            font-weight: 500;
+            color: #000;
+        }
+        .member-message-count {
+            display: flex;
+            align-items: center;
+            font-size: 0.9em;
+            color: var(--inactive-text);
+            padding: 5px 8px;
+        }
+        .member-message-count img {
+            width: 18px;
+            height: 18px;
+            margin-right: 5px;
+        }
 
-        .member-icon-container { width: 48px; height: 48px; border-radius: 50%; margin-right: 12px; border-width: 2.5px; /* 画像に近い枠線の太さ */ border-style: solid; flex-shrink: 0; display:flex; align-items:center; justify-content:center; overflow:hidden; background-color: #eee; /* 画像読み込みまでのプレースホルダー色 */ }
-        .member-icon-container img {width:100%; height:100%; object-fit:cover;}
-        .member-name { flex-grow: 1; font-size: 1.05em; font-weight: 500; color: #000; }
-        .member-message-count { display: flex; align-items: center; font-size: 0.9em; color: var(--inactive-text); padding: 5px 8px; /* クリックしやすく */ }
-        .member-message-count img { width: 18px; height: 18px; margin-right: 5px; }
 
+        /* --- Chat Screen --- */
+        /* チャット画面下部の固定エリア */
+        #reply-suggestions-wrapper {
+            padding: 8px 10px;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--current-chat-bg);
+            flex-shrink: 0; /* 高さを固定 (固定レイアウトのキー) */
+            box-shadow: 0 -1px 2px rgba(0,0,0,0.03);
+        }
+        #reply-suggestions {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
+        .suggestion-btn {
+            background-color: rgba(255,255,255,0.8);
+            border: 1px solid #ccc;
+            border-radius: 16px;
+            padding: 7px 14px;
+            font-size: 0.85em;
+            cursor: pointer;
+            white-space: nowrap;
+            color: #333;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+        }
+        .suggestion-btn:active { background-color: rgba(255,255,255,1); }
 
-        #talk-list-screen footer { justify-content: space-around; height: 52px; /* フッターの高さ */ box-sizing: border-box; border-top: 1px solid #dadada; }
-        #talk-list-screen footer button { flex-direction: column; font-size: 0.65em; /* 画像の文字の小ささ */ color: var(--inactive-text); padding: 4px 0; flex: 1; display: flex; justify-content: center; background:none; border:none; cursor:pointer;}
-        /* #talk-list-screen footer button.active { color: var(--current-chat-accent); } JSで画像切り替えなので直接の色指定は不要 */
-        #talk-list-screen footer button img { width: 24px; height: 24px; margin-bottom: 2px; }
-        #talk-list-screen footer button span {display:block;}
+        #chat-input-area { /* HTMLではfooterタグ */
+            padding: 8px 10px;
+            gap: 8px;
+            background-color: #f0f0f0;
+            border-top: 1px solid #ccc;
+            display: flex; /*  子要素を横に並べる */
+            align-items: center;
+            flex-shrink: 0; /* 高さを固定 (固定レイアウトのキー) */
+        }
+        #message-input {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: 1px solid #d0d0d0;
+            font-size: 1em;
+            background-color: #fff;
+        }
+        #message-input:focus {
+            outline: none;
+            border-color: var(--current-chat-accent);
+        }
+        #send-message {
+            background-color: transparent;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            padding:0;
+            flex-shrink: 0; /* 送信ボタンのサイズを固定 */
+        }
+        #send-message img {
+            width: 28px;
+            height: 28px;
+        }
+        #send-message:active img {
+            transform: scale(0.95);
+        }
 
-
-        /* --- Chat Screen (画像2枚目) --- */
-        #chat-messages-container { /* メッセージ表示エリア */ display: flex; flex-direction: column; padding: 0 0 10px 0; /* 下に少し余白、他はmainで制御 */ }
-        .message-bubble-wrapper { display: flex; margin-bottom: 10px; /* 吹き出し間の余白 */ padding: 0 10px; /* 左右に少し余白 */ width: calc(100% - 20px); /* paddingを考慮 */ box-sizing: border-box; }
+        /* チャットメッセージ表示部分 */
+        #chat-messages-container {
+            display: flex;
+            flex-direction: column;
+            padding: 0 0 10px 0; /* 下部だけにパディング */
+        }
+        .message-bubble-wrapper {
+            display: flex;
+            margin-bottom: 10px;
+            padding: 0 10px;
+            width: calc(100% - 20px);
+            box-sizing: border-box;
+        }
         .message-bubble-wrapper.user { justify-content: flex-end; }
         .message-bubble-wrapper.ai { justify-content: flex-start; }
 
-        .ai-icon-chat { width: 36px; height: 36px; border-radius: 50%; margin-right: 8px; border-width: 2px; border-style: solid; flex-shrink: 0; display:flex; align-items:center; justify-content:center; overflow:hidden; background-color: #eee; }
-        .ai-icon-chat img {width:100%; height:100%; object-fit:cover;}
-        .ai-message-content { display: flex; flex-direction: column; align-items: flex-start; }
-        .ai-name-chat { font-size: 0.8em; color: #555; /* 少し濃いグレー */ margin-bottom: 3px; padding-left: 2px; }
+        .ai-icon-chat {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            margin-right: 8px;
+            border-width: 2px;
+            border-style: solid;
+            flex-shrink: 0;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            overflow:hidden;
+            background-color: #eee;
+        }
+        .ai-icon-chat img {
+            width:100%;
+            height:100%;
+            object-fit:cover;
+        }
+        .ai-message-content {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .ai-name-chat {
+            font-size: 0.8em;
+            color: #555;
+            margin-bottom: 3px;
+            padding-left: 2px;
+        }
+        .message-bubble {
+            max-width: 78%;
+            padding: 10px 14px;
+            border-radius: 18px;
+            line-height: 1.45;
+            word-wrap: break-word;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.08);
+        }
+        .message-bubble.user {
+            background-color: var(--current-user-bubble-bg);
+            color: var(--text-color);
+            border-bottom-right-radius: 5px;
+        }
+        .message-bubble.ai {
+            background-color: var(--ai-bubble-bg);
+            border: 1px solid var(--ai-bubble-border);
+            color: var(--text-color);
+            border-bottom-left-radius: 5px;
+        }
 
-        .message-bubble { max-width: 78%; /* 吹き出しの最大幅 */ padding: 10px 14px; border-radius: 18px; line-height: 1.45; word-wrap: break-word; box-shadow: 0 1px 1px rgba(0,0,0,0.08); /* 吹き出しにわずかな影 */ }
-        .message-bubble.user { background-color: var(--current-user-bubble-bg); /* JSで設定 */ color: var(--text-color); border-bottom-right-radius: 5px; /* 画像の角の形 */ }
-        .message-bubble.ai { background-color: var(--ai-bubble-bg); border: 1px solid var(--ai-bubble-border); color: var(--text-color); border-bottom-left-radius: 5px; /* 画像の角の形 */ }
 
-        #reply-suggestions-wrapper { /* 返信候補エリアのラッパー(背景色とpaddingのため) */ padding: 8px 10px; border-top: 1px solid var(--border-color); background-color: var(--current-chat-bg); /* テーマカラーの背景 */ flex-shrink: 0; /* 高さを固定 */ box-shadow: 0 -1px 2px rgba(0,0,0,0.03); /* 上の境界に影 */ }
-        #reply-suggestions { display: flex; flex-wrap: nowrap; /* 横一列 */ gap: 8px; overflow-x: auto; /* 横スクロール */ padding-bottom: 2px; /* スクロールバーのスペース */ }
-        .suggestion-btn { background-color: rgba(255,255,255,0.8); /* 少し透過した白 */ border: 1px solid #ccc; border-radius: 16px; padding: 7px 14px; font-size: 0.85em; cursor: pointer; white-space: nowrap; color: #333; box-shadow: 0 1px 1px rgba(0,0,0,0.05); }
-        .suggestion-btn:active { background-color: rgba(255,255,255,1); }
-
-        #chat-input-area { /* メッセージ入力エリア */ padding: 8px 10px; gap: 8px; /* 入力欄とボタンの間隔 */ background-color: #f0f0f0; /* 画像の入力エリアの背景色 */ border-top: 1px solid #ccc; }
-        #message-input { flex-grow: 1; padding: 10px 15px; border-radius: 20px; border: 1px solid #d0d0d0; font-size: 1em; background-color: #fff; }
-        #message-input:focus { outline: none; border-color: var(--current-chat-accent); }
-
-        #send-message { /* 送信ボタン */ background-color: transparent; /* 画像で色を表現 */ border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; padding:0; }
-        #send-message img { width: 28px; height: 28px; /* 送信アイコンのサイズ調整 */ }
-        #send-message:active img { transform: scale(0.95); }
-
-
-        /* --- Member Settings Screen (画像3枚目) --- */
-        .member-icon-large-container { display: flex; justify-content: center; margin-bottom: 25px; padding-top: 10px; }
-        .member-icon-large { width: 90px; height: 90px; border-radius: 50%; border-width: 3.5px; /* 画像に近い太さ */ border-style: solid; display:flex; align-items:center; justify-content:center; overflow:hidden; background-color: #eee; }
-        .member-icon-large img {width:100%; height:100%; object-fit:cover;}
-        #member-settings-screen h3 { /* 「基本設定」「性的設定」タイトル */ font-size: 0.9em; color: var(--inactive-text); margin-top: 20px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid rgba(0,0,0,0.08); font-weight: 500; padding-left: 5px; }
-        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 13px 5px; font-size: 0.95em; border-bottom: 1px solid rgba(0,0,0,0.05); /* より薄い区切り線 */ }
+        /* --- Member Settings Screen --- */
+        .member-icon-large-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+            padding-top: 10px;
+        }
+        .member-icon-large { /* HTMLでは settings-member-icon-wrapper */
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border-width: 3.5px;
+            border-style: solid;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            overflow:hidden;
+            background-color: #eee;
+        }
+        .member-icon-large img { /* HTMLでは settings-member-icon */
+            width:100%;
+            height:100%;
+            object-fit:cover;
+        }
+        #member-settings-screen h3 {
+            font-size: 0.9em;
+            color: var(--inactive-text);
+            margin-top: 20px;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+            font-weight: 500;
+            padding-left: 5px;
+        }
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 13px 5px;
+            font-size: 0.95em;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
         .setting-item:last-child { border-bottom: none; }
-
         .setting-item .label { color: #444; }
-        .setting-item .value, .setting-item .value.multi-value span { background-color: rgba(255,255,255,0.75); /* タグの背景 */ border: 1px solid #dcdcdc; padding: 6px 12px; border-radius: 16px; /* 画像のような丸みのあるタグ */ font-size: 0.9em; cursor: pointer; min-width: 60px; text-align: center; color: #333; box-shadow: 0 1px 1px rgba(0,0,0,0.04); }
-        .setting-item .value.multi-value { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; max-width: 65%; /* 右側の値エリアの最大幅 */ }
-         .setting-item .value.multi-value span { margin-bottom: 4px; } /* 折り返し時の間隔 */
+        .setting-item .value, .setting-item .value.multi-value span {
+            background-color: rgba(255,255,255,0.75);
+            border: 1px solid #dcdcdc;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.9em;
+            cursor: pointer;
+            min-width: 60px;
+            text-align: center;
+            color: #333;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+        }
+        .setting-item .value.multi-value {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            max-width: 65%;
+        }
+         .setting-item .value.multi-value span { margin-bottom: 4px; }
          .setting-item .value:active { background-color: #fff; }
 
 
         /* スクロールバーのスタイル（目立たないように） */
-        main::-webkit-scrollbar, #reply-suggestions::-webkit-scrollbar { width: 5px; height: 5px; }
-        main::-webkit-scrollbar-thumb, #reply-suggestions::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.15); border-radius: 3px; }
-        main::-webkit-scrollbar-track, #reply-suggestions::-webkit-scrollbar-track { background-color: transparent; }
+        main::-webkit-scrollbar, #reply-suggestions::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        main::-webkit-scrollbar-thumb, #reply-suggestions::-webkit-scrollbar-thumb {
+            background-color: rgba(0,0,0,0.15);
+            border-radius: 3px;
+        }
+        main::-webkit-scrollbar-track, #reply-suggestions::-webkit-scrollbar-track {
+            background-color: transparent;
+        }
 
     </style>
 </head>
@@ -156,12 +471,12 @@
                     <button id="chat-menu" title="メンバー設定"><img src="image/icon/header_menu.png" alt="メンバー設定"></button>
                 </div>
             </header>
-            <main id="chat-main-scroll-area"> <!-- このmainがスクロールする -->
+            <main id="chat-main-scroll-area">
                 <div id="chat-messages-container">
                      <!-- Chat messages will be here -->
                 </div>
             </main>
-            <div id="reply-suggestions-wrapper"> <!-- 背景とpaddingのため -->
+            <div id="reply-suggestions-wrapper">
                 <div id="reply-suggestions">
                     <button class="suggestion-btn">気持ちいい？</button>
                     <button class="suggestion-btn">バンバンバンバン</button>
@@ -181,7 +496,6 @@
             <header>
                 <div class="left-buttons"><button id="settings-back-to-chat" title="戻る"><img src="image/icon/header_back.png" alt="戻る"></button></div>
                 <h2 id="settings-member-name">メンバー名 設定</h2>
-                <div class="right-buttons"></div> <!-- 設定画面では右ボタンなし -->
             </header>
             <main>
                 <div class="member-icon-large-container">
@@ -230,14 +544,14 @@
         // --- Member Data (settings の詳細はサンプル) ---
         let membersData = {
             'mako': { id: 'mako', name: 'マコ', msgCount: 9, theme: membersThemeData['mako'], faceIconFile: 'mako_face.png', sendButtonIconFile: 'button_send_mako.png', settings: { '生年月日': '2001年4月4日', 'メンバーカラー': 'オレンジ', '出身': '福岡', '方言': '軽い博多弁', '性格': ['天然', 'しっかり者'], '身長': '159cm', '体重': '49kg', '胸のサイズ': 'Cカップ', '乳首の色': '薄い茶色', '陰毛': '少し生えている', 'まんこの色': 'ピンク', '性欲': '普通', '好きな体位': '正常位', '感度': 'すぐイッちゃう', '得意な前戯': 'フェラ' } },
-            'rio':  { id: 'rio',  name: 'リオ', msgCount: 10, theme: membersThemeData['rio'], faceIconFile: 'rio_face.png', sendButtonIconFile: 'button_send_rio.png', settings: { '生年月日': '2002年2月4日', 'メンバーカラー': 'ブルー', '出身': '愛知','性格': ['努力家'], '胸のサイズ': 'Bカップ'  /* 他は省略 */ } },
-            'maya': { id: 'maya', name: 'マヤ', msgCount: 7, theme: membersThemeData['maya'], faceIconFile: 'maya_face.png', sendButtonIconFile: 'button_send_maya.png', settings: { '生年月日': '2002年4月8日', 'メンバーカラー': 'パープル','出身': '石川', '性格': ['おっとり'], '胸のサイズ': 'Dカップ' /* 他は省略 */ } },
-            'riku': { id: 'riku', name: 'リク', msgCount: 0, theme: membersThemeData['riku'], faceIconFile: 'riku_face.png', sendButtonIconFile: 'button_send_riku.png', settings: { '生年月日': '2002年10月26日', 'メンバーカラー': 'イエロー','出身': '京都',  '性格': ['元気'], '胸のサイズ': 'Aカップ' /* 他は省略 */ } },
-            'ayaka':{ id: 'ayaka',name: 'アヤカ', msgCount: 1, theme: membersThemeData['ayaka'],faceIconFile: 'ayaka_face.png',sendButtonIconFile: 'button_send_ayaka.png',settings: { '生年月日': '2003年6月20日', 'メンバーカラー': 'ホワイト','出身': '東京', '性格': ['マイペース'], '胸のサイズ': 'Cカップ' /* 他は省略 */ } },
-            'mayuka':{id: 'mayuka',name: 'マユカ',msgCount: 12,theme: membersThemeData['mayuka'],faceIconFile: 'mayuka_face.png',sendButtonIconFile: 'button_send_mayuka.png',settings: { '生年月日': '2003年11月13日', 'メンバーカラー': 'ライトグリーン','出身': '京都', '性格': ['カメレオン'], '胸のサイズ': 'Bカップ' /* 他は省略 */ } },
-            'rima': { id: 'rima', name: 'リマ', msgCount: 15, theme: membersThemeData['rima'], faceIconFile: 'rima_face.png', sendButtonIconFile: 'button_send_rima.png', settings: { '生年月日': '2004年3月26日', 'メンバーカラー': 'レッド','出身': '東京', '性格': ['おしゃれ'], '胸のサイズ': 'Cカップ' /* 他は省略 */ } },
-            'miihi':{ id: 'miihi',name: 'ミイヒ',msgCount: 17,theme: membersThemeData['miihi'],faceIconFile: 'miihi_face.png',sendButtonIconFile: 'button_send_miihi.png',settings: { '生年月日': '2004年8月12日', 'メンバーカラー': 'ピンク','出身': '京都', '性格': ['癒し'], '胸のサイズ': 'Aカップ' /* 他は省略 */ } },
-            'nina': { id: 'nina', name: 'ニナ', msgCount: 2, theme: membersThemeData['nina'], faceIconFile: 'nina_face.png', sendButtonIconFile: 'button_send_nina.png', settings: { '生年月日': '2005年2月27日', 'メンバーカラー': 'ネイビー','出身': 'ワシントン州', '性格': ['末っ子'], '胸のサイズ': 'Dカップ' /* 他は省略 */ } },
+            'rio':  { id: 'rio',  name: 'リオ', msgCount: 10, theme: membersThemeData['rio'], faceIconFile: 'rio_face.png', sendButtonIconFile: 'button_send_rio.png', settings: { '生年月日': '2002年2月4日', 'メンバーカラー': 'ブルー', '出身': '愛知','性格': ['努力家'], '胸のサイズ': 'Bカップ' } },
+            'maya': { id: 'maya', name: 'マヤ', msgCount: 7, theme: membersThemeData['maya'], faceIconFile: 'maya_face.png', sendButtonIconFile: 'button_send_maya.png', settings: { '生年月日': '2002年4月8日', 'メンバーカラー': 'パープル','出身': '石川', '性格': ['おっとり'], '胸のサイズ': 'Dカップ' } },
+            'riku': { id: 'riku', name: 'リク', msgCount: 0, theme: membersThemeData['riku'], faceIconFile: 'riku_face.png', sendButtonIconFile: 'button_send_riku.png', settings: { '生年月日': '2002年10月26日', 'メンバーカラー': 'イエロー','出身': '京都',  '性格': ['元気'], '胸のサイズ': 'Aカップ' } },
+            'ayaka':{ id: 'ayaka',name: 'アヤカ', msgCount: 1, theme: membersThemeData['ayaka'],faceIconFile: 'ayaka_face.png',sendButtonIconFile: 'button_send_ayaka.png',settings: { '生年月日': '2003年6月20日', 'メンバーカラー': 'ホワイト','出身': '東京', '性格': ['マイペース'], '胸のサイズ': 'Cカップ' } },
+            'mayuka':{id: 'mayuka',name: 'マユカ',msgCount: 12,theme: membersThemeData['mayuka'],faceIconFile: 'mayuka_face.png',sendButtonIconFile: 'button_send_mayuka.png',settings: { '生年月日': '2003年11月13日', 'メンバーカラー': 'ライトグリーン','出身': '京都', '性格': ['カメレオン'], '胸のサイズ': 'Bカップ' } },
+            'rima': { id: 'rima', name: 'リマ', msgCount: 15, theme: membersThemeData['rima'], faceIconFile: 'rima_face.png', sendButtonIconFile: 'button_send_rima.png', settings: { '生年月日': '2004年3月26日', 'メンバーカラー': 'レッド','出身': '東京', '性格': ['おしゃれ'], '胸のサイズ': 'Cカップ' } },
+            'miihi':{ id: 'miihi',name: 'ミイヒ',msgCount: 17,theme: membersThemeData['miihi'],faceIconFile: 'miihi_face.png',sendButtonIconFile: 'button_send_miihi.png',settings: { '生年月日': '2004年8月12日', 'メンバーカラー': 'ピンク','出身': '京都', '性格': ['癒し'], '胸のサイズ': 'Aカップ' } },
+            'nina': { id: 'nina', name: 'ニナ', msgCount: 2, theme: membersThemeData['nina'], faceIconFile: 'nina_face.png', sendButtonIconFile: 'button_send_nina.png', settings: { '生年月日': '2005年2月27日', 'メンバーカラー': 'ネイビー','出身': 'ワシントン州', '性格': ['末っ子'], '胸のサイズ': 'Dカップ' } },
         };
         // 全メンバーにデフォルト設定を適用（不足分を補う）
         Object.values(membersData).forEach(member => {
@@ -291,7 +605,7 @@
                 rootStyle.setProperty('--current-chat-bg', member.theme.bgColor);
                 rootStyle.setProperty('--current-chat-accent', member.theme.accentColor);
                 rootStyle.setProperty('--current-user-bubble-bg', member.theme.userBubbleBg);
-                rootStyle.setProperty('--current-header-icon-color', member.theme.accentColor); // 画像でないヘッダーボタン用
+                // rootStyle.setProperty('--current-header-icon-color', member.theme.accentColor); // 画像なので直接は影響しない
                 if (sendMessageImg && member.sendButtonIconFile) {
                     sendMessageImg.src = ICON_PATH + member.sendButtonIconFile;
                     sendMessageImg.alt = `${member.name}へ送信`;
@@ -302,7 +616,7 @@
             rootStyle.setProperty('--current-chat-bg', membersThemeData['mako'].bgColor); // マコさんテーマをデフォルトに
             rootStyle.setProperty('--current-chat-accent', membersThemeData['mako'].accentColor);
             rootStyle.setProperty('--current-user-bubble-bg', membersThemeData['mako'].userBubbleBg);
-            rootStyle.setProperty('--current-header-icon-color', '#333'); // TalkListなどのヘッダーアイコンは黒系
+            // rootStyle.setProperty('--current-header-icon-color', '#333'); // 画像なので直接は影響しない
             // 送信ボタンもデフォルトメンバー（マコ）のものに
             if (sendMessageImg && membersData['mako']?.sendButtonIconFile) {
                  sendMessageImg.src = ICON_PATH + membersData['mako'].sendButtonIconFile;
