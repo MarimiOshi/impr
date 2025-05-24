@@ -12,42 +12,40 @@
             --current-chat-bg: #fdf6e9; /* デフォルトはマコさんテーマの背景 */
             --current-chat-accent: #E67E22; /* デフォルトはマコさんテーマのアクセント */
             --current-user-bubble-bg: #f0dcb3; /* デフォルトはマコさんテーマのユーザー吹き出し */
-            --current-header-icon-color: var(--current-chat-accent); /* ヘッダーテキストボタンに影響 (現在は画像なので直接は影響しない) */
             --ai-bubble-bg: #ffffff;
             --ai-bubble-border: #e8e8e8;
             --header-text-color: #1c1e21; /* 少し濃いめの黒 */
             --text-color: #333333;
             --border-color: #e0e0e0; /* 通常の境界線 */
             --light-border-color: #f0f0f0; /* 薄い境界線 */
-            --inactive-text: #888888;
+            --inactive-text: #888888; /* フッター非アクティブ時の文字色 */
         }
         body {
             margin: 0;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--app-overall-bg);
             color: var(--text-color);
-            display: flex; /*  全体の高さを100vhにするため */
+            display: flex;
             flex-direction: column;
-            height: 100vh; /* ビューポートの高さに固定 */
-            overflow: hidden; /* body自体のスクロールを禁止 */
+            height: 100vh;
+            overflow: hidden;
         }
         #app {
-            display: flex; /* screenを縦に並べるため */
+            display: flex;
             flex-direction: column;
-            flex-grow: 1; /* bodyの残りスペースを全て使う */
-            height: 100%; /* 親(body)の高さ一杯に広がる */
-            overflow: hidden; /* #app自体のスクロールも禁止 */
+            flex-grow: 1;
+            height: 100%;
+            overflow: hidden;
         }
         .screen {
-            display: none; /* 通常は非表示 */
-            flex-direction: column; /* header, main, footerを縦に並べる */
-            height: 100%; /* 親(#app)の高さ一杯に広がる */
-            overflow: hidden; /* screen自体のスクロールも禁止 (mainでスクロール制御) */
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
         }
         .screen.active {
-            display: flex; /* アクティブな画面のみ表示 */
+            display: flex;
         }
-        /* 各スクリーンの背景色設定 */
         #talk-list-screen { background-color: var(--talk-list-bg); }
         #chat-screen { background-color: var(--current-chat-bg); }
         #member-settings-screen { background-color: var(--current-chat-bg); }
@@ -59,7 +57,7 @@
             border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
-            flex-shrink: 0; /* 高さを固定 (固定レイアウトのキー) */
+            flex-shrink: 0;
             min-height: 48px;
             box-sizing: border-box;
             position: relative;
@@ -128,49 +126,64 @@
 
 
         main {
-            flex-grow: 1; /* 可変高さ、残りのスペースを全て使用 (固定レイアウトのキー) */
-            overflow-y: auto; /* 内容が多い場合にスクロール (固定レイアウトのキー) */
-            -webkit-overflow-scrolling: touch; /* iOSでの慣性スクロール */
+            flex-grow: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
-        #talk-list-screen main { padding: 0; }
-        #chat-screen main { padding: 10px 0 0 0; } /* 上パディングのみ、左右と下は内部要素で */
+        #talk-list-screen main,
+        #common-settings-screen main,
+        #profile-screen main { padding: 0; } /* フッターがある画面のmainのpadding */
+
+        #chat-screen main { padding: 10px 0 0 0; }
         #member-settings-screen main { padding: 15px; }
 
 
-        /* フッターの共通スタイル (トーク一覧画面用) */
-        #talk-list-screen > footer {
+        /* フッターの共通スタイル (トーク一覧、共通設定、プロフィール画面用) */
+        #talk-list-screen > footer,
+        #common-settings-screen > footer,
+        #profile-screen > footer {
             border-top: 1px solid #dadada;
             padding: 0;
             display: flex;
-            align-items: center;
-            justify-content: space-around;
-            flex-shrink: 0; /* 高さを固定 (固定レイアウトのキー) */
+            align-items: center; /* アイテムを垂直方向に中央揃え */
+            justify-content: space-around; /* 各ボタンを均等に配置 */
+            flex-shrink: 0;
             background-color: #f7f7f7;
             height: 52px;
             box-sizing: border-box;
         }
-        #talk-list-screen footer button {
-            flex-direction: column;
+        #talk-list-screen footer button,
+        #common-settings-screen footer button,
+        #profile-screen footer button {
+            flex-direction: column; /* アイコンとテキストを縦に並べる */
+            align-items: center;   /* BOX内で左右中央揃え */
+            justify-content: center; /* BOX内で上下中央揃え */
             font-size: 0.65em;
-            color: var(--inactive-text);
+            color: var(--inactive-text); /* デフォルトの文字色 (JSで上書き) */
             padding: 4px 0;
-            flex: 1;
+            flex: 1; /* 各ボタンが均等に幅を取る (BOXとして機能) */
             display: flex;
-            justify-content: center;
             background:none;
             border:none;
             cursor:pointer;
+            height: 100%; /* ボタンの高さをフッターに合わせる */
         }
-        #talk-list-screen footer button img {
+        /* アクティブ時の文字色はJSで #000000 に設定 */
+
+        #talk-list-screen footer button img,
+        #common-settings-screen footer button img,
+        #profile-screen footer button img {
             width: 24px;
             height: 24px;
             margin-bottom: 2px;
         }
-        #talk-list-screen footer button span {
+        #talk-list-screen footer button span,
+        #common-settings-screen footer button span,
+        #profile-screen footer button span {
             display:block;
         }
 
-        /* --- Talk List Screen --- */
+        /* --- Talk List Screen (main内部のリスト) --- */
         #member-list {
             list-style: none;
             padding: 0;
@@ -224,13 +237,12 @@
         }
 
 
-        /* --- Chat Screen --- */
-        /* チャット画面下部の固定エリア */
+        /* --- Chat Screen (下部固定エリアとメッセージ) --- */
         #reply-suggestions-wrapper {
             padding: 8px 10px;
             border-top: 1px solid var(--border-color);
             background-color: var(--current-chat-bg);
-            flex-shrink: 0; /* 高さを固定 (固定レイアウトのキー) */
+            flex-shrink: 0;
             box-shadow: 0 -1px 2px rgba(0,0,0,0.03);
         }
         #reply-suggestions {
@@ -258,9 +270,9 @@
             gap: 8px;
             background-color: #f0f0f0;
             border-top: 1px solid #ccc;
-            display: flex; /*  子要素を横に並べる */
+            display: flex;
             align-items: center;
-            flex-shrink: 0; /* 高さを固定 (固定レイアウトのキー) */
+            flex-shrink: 0;
         }
         #message-input {
             flex-grow: 1;
@@ -285,7 +297,7 @@
             align-items: center;
             cursor: pointer;
             padding:0;
-            flex-shrink: 0; /* 送信ボタンのサイズを固定 */
+            flex-shrink: 0;
         }
         #send-message img {
             width: 28px;
@@ -295,11 +307,10 @@
             transform: scale(0.95);
         }
 
-        /* チャットメッセージ表示部分 */
         #chat-messages-container {
             display: flex;
             flex-direction: column;
-            padding: 0 0 10px 0; /* 下部だけにパディング */
+            padding: 0 0 10px 0;
         }
         .message-bubble-wrapper {
             display: flex;
@@ -510,25 +521,35 @@
                     <!-- Sexual settings will be dynamically generated -->
                 </div>
             </main>
+            <!-- メンバー設定画面には下部フッターナビは不要 -->
         </div>
 
-        <!-- Screen 4: Common Settings (Placeholder) -->
+        <!-- Screen 4: Common Settings -->
         <div id="common-settings-screen" class="screen">
             <header><button class="back-to-talk-list" title="戻る"><img src="image/icon/header_back.png" alt="戻る"></button><h1>共通設定</h1></header>
             <main><p style="padding:15px;">共通設定画面 (未実装)</p></main>
+            <footer> <!-- トーク一覧と同じフッター -->
+                <button id="nav-common-settings-cs"><img src="image/icon/nav_settings_off.png" alt="共通設定"><span>共通設定</span></button>
+                <button id="nav-talk-cs"><img src="image/icon/nav_talk_off.png" alt="トーク"><span>トーク</span></button>
+                <button id="nav-profile-cs"><img src="image/icon/nav_profile_off.png" alt="プロフィール"><span>プロフィール</span></button>
+            </footer>
         </div>
 
-        <!-- Screen 5: Profile Screen (Placeholder) -->
+        <!-- Screen 5: Profile Screen -->
         <div id="profile-screen" class="screen">
             <header><button class="back-to-talk-list" title="戻る"><img src="image/icon/header_back.png" alt="戻る"></button><h1>プロフィール</h1></header>
             <main><p style="padding:15px;">プロフィール画面 (未実装)</p></main>
+            <footer> <!-- トーク一覧と同じフッター -->
+                <button id="nav-common-settings-p"><img src="image/icon/nav_settings_off.png" alt="共通設定"><span>共通設定</span></button>
+                <button id="nav-talk-p"><img src="image/icon/nav_talk_off.png" alt="トーク"><span>トーク</span></button>
+                <button id="nav-profile-p"><img src="image/icon/nav_profile_off.png" alt="プロフィール"><span>プロフィール</span></button>
+            </footer>
         </div>
     </div>
 
     <script>
-        const ICON_PATH = 'image/icon/'; // アイコンフォルダのパス
+        const ICON_PATH = 'image/icon/';
 
-        // --- Theme Data ---
         const membersThemeData = {
             'mako':  { name: 'マコ', accentColor: '#E67E22', bgColor: '#fdf6e9', userBubbleBg: '#f0dcb3' },
             'rio':   { name: 'リオ', accentColor: '#3498DB', bgColor: '#eaf3f9', userBubbleBg: '#cce0f1' },
@@ -541,7 +562,6 @@
             'nina':  { name: 'ニナ', accentColor: '#34495E', bgColor: '#ebedef', userBubbleBg: '#ccd1d6' }
         };
 
-        // --- Member Data (settings の詳細はサンプル) ---
         let membersData = {
             'mako': { id: 'mako', name: 'マコ', msgCount: 9, theme: membersThemeData['mako'], faceIconFile: 'mako_face.png', sendButtonIconFile: 'button_send_mako.png', settings: { '生年月日': '2001年4月4日', 'メンバーカラー': 'オレンジ', '出身': '福岡', '方言': '軽い博多弁', '性格': ['天然', 'しっかり者'], '身長': '159cm', '体重': '49kg', '胸のサイズ': 'Cカップ', '乳首の色': '薄い茶色', '陰毛': '少し生えている', 'まんこの色': 'ピンク', '性欲': '普通', '好きな体位': '正常位', '感度': 'すぐイッちゃう', '得意な前戯': 'フェラ' } },
             'rio':  { id: 'rio',  name: 'リオ', msgCount: 10, theme: membersThemeData['rio'], faceIconFile: 'rio_face.png', sendButtonIconFile: 'button_send_rio.png', settings: { '生年月日': '2002年2月4日', 'メンバーカラー': 'ブルー', '出身': '愛知','性格': ['努力家'], '胸のサイズ': 'Bカップ' } },
@@ -553,25 +573,33 @@
             'miihi':{ id: 'miihi',name: 'ミイヒ',msgCount: 17,theme: membersThemeData['miihi'],faceIconFile: 'miihi_face.png',sendButtonIconFile: 'button_send_miihi.png',settings: { '生年月日': '2004年8月12日', 'メンバーカラー': 'ピンク','出身': '京都', '性格': ['癒し'], '胸のサイズ': 'Aカップ' } },
             'nina': { id: 'nina', name: 'ニナ', msgCount: 2, theme: membersThemeData['nina'], faceIconFile: 'nina_face.png', sendButtonIconFile: 'button_send_nina.png', settings: { '生年月日': '2005年2月27日', 'メンバーカラー': 'ネイビー','出身': 'ワシントン州', '性格': ['末っ子'], '胸のサイズ': 'Dカップ' } },
         };
-        // 全メンバーにデフォルト設定を適用（不足分を補う）
         Object.values(membersData).forEach(member => {
             const defaultSettings = { '生年月日': '', 'メンバーカラー': '', '出身': '', '方言': '', '性格': [], '身長': '', '体重': '', '胸のサイズ': '', '乳首の色': '', '陰毛': '', 'まんこの色': '', '性欲': '', '好きな体位': '', '感度': '', '得意な前戯': '' };
             member.settings = { ...defaultSettings, ...member.settings };
-            if (!member.faceIconFile) member.faceIconFile = 'default_face.png'; // デフォルト顔アイコン
+            if (!member.faceIconFile) member.faceIconFile = 'default_face.png';
         });
 
-
         let currentMemberId = null;
-        let chatHistory = {}; // { memberId: [{ type: 'ai'/'user', text: '...', senderName: 'マコ' }] }
+        let chatHistory = {};
 
-        // --- DOM Elements ---
         const screens = document.querySelectorAll('.screen');
         const memberListUl = document.getElementById('member-list');
-        const navButtons = { // フッターナビボタンのオブジェクト
-            settings: document.getElementById('nav-common-settings'),
-            talk: document.getElementById('nav-talk'),
-            profile: document.getElementById('nav-profile')
-        };
+
+        // フッターナビボタンの参照 (IDが重複するため、各画面ごとに取得するか、クラスでまとめて取得する)
+        // 今回はシンプルに、イベントリスナーは talk-list-screen のフッターにのみ設定し、
+        // 他の画面のフッターボタンクリックは、それらのボタンに個別のIDを振って対応
+        const navCommonSettingsBtn = document.getElementById('nav-common-settings');
+        const navTalkBtn = document.getElementById('nav-talk');
+        const navProfileBtn = document.getElementById('nav-profile');
+        // Common Settings Screenのフッターボタン
+        const navCommonSettingsCsBtn = document.getElementById('nav-common-settings-cs');
+        const navTalkCsBtn = document.getElementById('nav-talk-cs');
+        const navProfileCsBtn = document.getElementById('nav-profile-cs');
+        // Profile Screenのフッターボタン
+        const navCommonSettingsPBtn = document.getElementById('nav-common-settings-p');
+        const navTalkPBtn = document.getElementById('nav-talk-p');
+        const navProfilePBtn = document.getElementById('nav-profile-p');
+
 
         const chatScreen = document.getElementById('chat-screen');
         const chatMainScrollArea = document.getElementById('chat-main-scroll-area');
@@ -583,125 +611,115 @@
         const replySuggestionsDiv = document.getElementById('reply-suggestions');
         const messageInput = document.getElementById('message-input');
         const sendMessageBtn = document.getElementById('send-message');
-        const sendMessageImg = sendMessageBtn.querySelector('img'); // 送信ボタン内のimg要素
+        const sendMessageImg = sendMessageBtn.querySelector('img');
 
         const memberSettingsScreen = document.getElementById('member-settings-screen');
         const settingsBackToChatBtn = document.getElementById('settings-back-to-chat');
         const settingsMemberNameH2 = document.getElementById('settings-member-name');
-        const settingsMemberIcon = document.getElementById('settings-member-icon'); // 設定画面のメンバーアイコンimg
-        const settingsMemberIconWrapper = document.getElementById('settings-member-icon-wrapper'); // 設定画面のメンバーアイコンのラッパーdiv
+        const settingsMemberIcon = document.getElementById('settings-member-icon');
+        const settingsMemberIconWrapper = document.getElementById('settings-member-icon-wrapper');
         const basicSettingsContainer = document.getElementById('basic-settings-container');
         const sexualSettingsContainer = document.getElementById('sexual-settings-container');
 
-        const commonSettingsScreen = document.getElementById('common-settings-screen');
-        const profileScreen = document.getElementById('profile-screen');
-        const backToTalkListBtns = document.querySelectorAll('.back-to-talk-list');
         const rootStyle = document.documentElement.style;
 
-        // --- Theme Application ---
         function applyTheme(memberId) {
             const member = membersData[memberId];
             if (member && member.theme) {
                 rootStyle.setProperty('--current-chat-bg', member.theme.bgColor);
                 rootStyle.setProperty('--current-chat-accent', member.theme.accentColor);
                 rootStyle.setProperty('--current-user-bubble-bg', member.theme.userBubbleBg);
-                // rootStyle.setProperty('--current-header-icon-color', member.theme.accentColor); // 画像なので直接は影響しない
                 if (sendMessageImg && member.sendButtonIconFile) {
                     sendMessageImg.src = ICON_PATH + member.sendButtonIconFile;
                     sendMessageImg.alt = `${member.name}へ送信`;
                 }
             }
         }
-        function resetThemeToDefault() { // トーク一覧などに戻る時用
-            rootStyle.setProperty('--current-chat-bg', membersThemeData['mako'].bgColor); // マコさんテーマをデフォルトに
+        function resetThemeToDefault() {
+            rootStyle.setProperty('--current-chat-bg', membersThemeData['mako'].bgColor);
             rootStyle.setProperty('--current-chat-accent', membersThemeData['mako'].accentColor);
             rootStyle.setProperty('--current-user-bubble-bg', membersThemeData['mako'].userBubbleBg);
-            // rootStyle.setProperty('--current-header-icon-color', '#333'); // 画像なので直接は影響しない
-            // 送信ボタンもデフォルトメンバー（マコ）のものに
             if (sendMessageImg && membersData['mako']?.sendButtonIconFile) {
                  sendMessageImg.src = ICON_PATH + membersData['mako'].sendButtonIconFile;
                  sendMessageImg.alt = `送信`;
             }
         }
 
-        // フッターナビゲーションのアイコン更新
         function updateFooterNavIcons(activeScreenId) {
-            Object.keys(navButtons).forEach(key => {
-                const btn = navButtons[key];
-                const img = btn.querySelector('img');
-                let baseName = ''; // nav_settings, nav_talk, nav_profile
-                if (key === 'settings') baseName = 'nav_settings';
-                else if (key === 'talk') baseName = 'nav_talk';
-                else if (key === 'profile') baseName = 'nav_profile';
+            const allNavButtons = [
+                // Talk List Screen Footer
+                { btn: navCommonSettingsBtn, screen: 'common-settings-screen', baseName: 'nav_settings' },
+                { btn: navTalkBtn, screen: 'talk-list-screen', baseName: 'nav_talk' },
+                { btn: navProfileBtn, screen: 'profile-screen', baseName: 'nav_profile' },
+                // Common Settings Screen Footer
+                { btn: navCommonSettingsCsBtn, screen: 'common-settings-screen', baseName: 'nav_settings' },
+                { btn: navTalkCsBtn, screen: 'talk-list-screen', baseName: 'nav_talk' },
+                { btn: navProfileCsBtn, screen: 'profile-screen', baseName: 'nav_profile' },
+                // Profile Screen Footer
+                { btn: navCommonSettingsPBtn, screen: 'common-settings-screen', baseName: 'nav_settings' },
+                { btn: navTalkPBtn, screen: 'talk-list-screen', baseName: 'nav_talk' },
+                { btn: navProfilePBtn, screen: 'profile-screen', baseName: 'nav_profile' },
+            ];
 
-                if ((key === 'talk' && activeScreenId === 'talk-list-screen') ||
-                    (key === 'settings' && activeScreenId === 'common-settings-screen') ||
-                    (key === 'profile' && activeScreenId === 'profile-screen')) {
-                    img.src = ICON_PATH + baseName + '_on.png';
-                    btn.classList.add('active'); // スタイル用にクラスもつける
+            allNavButtons.forEach(item => {
+                if (!item.btn) return; // ボタン要素が存在しない場合はスキップ
+                const img = item.btn.querySelector('img');
+                const span = item.btn.querySelector('span');
+                if (!img || !span) return;
+
+                if (item.screen === activeScreenId) {
+                    img.src = ICON_PATH + item.baseName + '_on.png';
+                    span.style.color = '#000000'; // アクティブ時は黒文字
                 } else {
-                    img.src = ICON_PATH + baseName + '_off.png';
-                    btn.classList.remove('active');
+                    img.src = ICON_PATH + item.baseName + '_off.png';
+                    span.style.color = ''; // デフォルトの色 (CSSの --inactive-text が適用される)
                 }
             });
         }
 
-        // --- Navigation ---
+
         function showScreen(screenId) {
             screens.forEach(screen => screen.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
-            updateFooterNavIcons(screenId); // フッターアイコンを更新
+            updateFooterNavIcons(screenId);
 
             if (screenId === 'chat-screen' || screenId === 'member-settings-screen') {
                 if (currentMemberId) applyTheme(currentMemberId);
             } else {
-                resetThemeToDefault(); // 他の画面ではテーマをリセット
+                resetThemeToDefault();
             }
         }
 
-        // --- Rendering ---
         function renderMemberList() {
             memberListUl.innerHTML = '';
             Object.values(membersData).forEach(member => {
                 const li = document.createElement('li');
                 li.className = 'member-item';
                 li.dataset.memberId = member.id;
-
                 const iconContainer = document.createElement('div');
                 iconContainer.className = 'member-icon-container';
                 iconContainer.style.borderColor = member.theme.accentColor;
                 const iconImg = document.createElement('img');
-                iconImg.src = ICON_PATH + (member.faceIconFile || 'default_face.png'); // デフォルト画像も考慮
+                iconImg.src = ICON_PATH + (member.faceIconFile || 'default_face.png');
                 iconImg.alt = member.name;
                 iconContainer.appendChild(iconImg);
-
                 const nameSpan = document.createElement('span');
                 nameSpan.className = 'member-name';
                 nameSpan.textContent = member.name;
-
                 const countDiv = document.createElement('div');
                 countDiv.className = 'member-message-count';
-                const countIcon = document.createElement('img'); // メッセージ数アイコンも画像に
+                const countIcon = document.createElement('img');
                 countIcon.src = ICON_PATH + 'icon_message_bubble.png';
                 countIcon.alt = 'メッセージ';
                 countDiv.appendChild(countIcon);
-                countDiv.append(` ${member.msgCount}`); // テキストノードとして追加
-
-
-                // Click on member name/icon area
+                countDiv.append(` ${member.msgCount}`);
                 const mainClickArea = document.createElement('div');
                 mainClickArea.style.cssText = 'display:flex; align-items:center; flex-grow:1; cursor:pointer;';
                 mainClickArea.appendChild(iconContainer);
                 mainClickArea.appendChild(nameSpan);
-                mainClickArea.addEventListener('click', () => openChat(member.id, true)); // true for new talk
-
-                // Click on message count area
+                mainClickArea.addEventListener('click', () => openChat(member.id, true));
                 countDiv.style.cursor = 'pointer';
-                countDiv.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent li click
-                    openChat(member.id, false); // false for existing/past talk
-                });
-
+                countDiv.addEventListener('click', (e) => { e.stopPropagation(); openChat(member.id, false); });
                 li.appendChild(mainClickArea);
                 li.appendChild(countDiv);
                 memberListUl.appendChild(li);
@@ -714,29 +732,23 @@
                 chatMessagesContainer.innerHTML = '<p style="text-align:center; color:#aaa; margin-top:20px;">メッセージはありません。</p>';
                 return;
             }
-
-            const currentMember = membersData[currentMemberId]; // 事前に取得
-
+            const currentMember = membersData[currentMemberId];
             chatHistory[currentMemberId].forEach((msg, index) => {
                 const wrapper = document.createElement('div');
                 wrapper.className = `message-bubble-wrapper ${msg.type}`;
-
                 const bubble = document.createElement('div');
                 bubble.className = `message-bubble ${msg.type}`;
                 bubble.textContent = msg.text;
                 bubble.dataset.messageIndex = index;
-
-
                 if (msg.type === 'ai') {
                     const iconDiv = document.createElement('div');
                     iconDiv.className = 'ai-icon-chat';
-                    iconDiv.style.borderColor = currentMember.theme.accentColor; // 現在のメンバーのテーマカラー
+                    iconDiv.style.borderColor = currentMember.theme.accentColor;
                     const aiImg = document.createElement('img');
                     aiImg.src = ICON_PATH + (currentMember.faceIconFile || 'default_face.png');
                     aiImg.alt = currentMember.name;
                     iconDiv.appendChild(aiImg);
                     wrapper.appendChild(iconDiv);
-
                     const messageContentDiv = document.createElement('div');
                     messageContentDiv.className = 'ai-message-content';
                     const nameSpan = document.createElement('span');
@@ -745,18 +757,15 @@
                     messageContentDiv.appendChild(nameSpan);
                     messageContentDiv.appendChild(bubble);
                     wrapper.appendChild(messageContentDiv);
-
-                     // Click for "swipe to regenerate" placeholder
                     bubble.addEventListener('click', () => {
-                        alert(`AIメッセージ「${msg.text}」を再生成しますか？ (スワイプ機能はUIデモのためクリックで代替)`);
+                        alert(`AIメッセージ「${msg.text}」を再生成しますか？ (UIデモ)`);
                     });
-
-                } else { // user message
+                } else {
                     wrapper.appendChild(bubble);
-                    bubble.addEventListener('mousedown', (e) => { // Simulate long press
+                    bubble.addEventListener('mousedown', (e) => {
                         let pressTimer = window.setTimeout(() => {
-                            alert(`メッセージ「${msg.text}」を編集しますか？\n(編集すると以降のメッセージがクリアされ、AIが再生成します - UIデモ)`);
-                        }, 1000); // 1 second for long press
+                            alert(`メッセージ「${msg.text}」を編集しますか？ (UIデモ)`);
+                        }, 1000);
                         const clearTimer = () => clearTimeout(pressTimer);
                         bubble.addEventListener('mouseup', clearTimer, {once: true});
                         bubble.addEventListener('mouseleave', clearTimer, {once: true});
@@ -764,7 +773,7 @@
                 }
                 chatMessagesContainer.appendChild(wrapper);
             });
-            chatMainScrollArea.scrollTop = chatMainScrollArea.scrollHeight; // Scroll to bottom
+            chatMainScrollArea.scrollTop = chatMainScrollArea.scrollHeight;
         }
 
         function renderMemberSettings() {
@@ -773,135 +782,97 @@
             settingsMemberNameH2.textContent = `${member.name} 設定`;
             settingsMemberIcon.src = ICON_PATH + (member.faceIconFile || 'default_face.png');
             settingsMemberIcon.alt = member.name;
-            // アイコンの親要素(ラッパーdiv)に枠線色を設定
             if(settingsMemberIconWrapper) settingsMemberIconWrapper.style.borderColor = member.theme.accentColor;
-
-
             basicSettingsContainer.innerHTML = '';
             sexualSettingsContainer.innerHTML = '';
-
             const createSettingItem = (key, value) => {
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'setting-item';
                 const labelSpan = document.createElement('span');
                 labelSpan.className = 'label';
                 labelSpan.textContent = key;
-
                 const valueDiv = document.createElement('div');
-
-                if (Array.isArray(value)) { // For 性格 etc.
+                if (Array.isArray(value)) {
                     valueDiv.className = 'value multi-value';
-                    value.forEach(v => {
-                        const valSpan = document.createElement('span');
-                        valSpan.textContent = v;
-                        valueDiv.appendChild(valSpan);
-                    });
+                    value.forEach(v => { const valSpan = document.createElement('span'); valSpan.textContent = v; valueDiv.appendChild(valSpan); });
                 } else {
-                    valueDiv.className = 'value';
-                    valueDiv.textContent = value || '未設定'; // Show '未設定' for empty strings
+                    valueDiv.className = 'value'; valueDiv.textContent = value || '未設定';
                 }
                 valueDiv.addEventListener('click', () => {
-                    const newValue = prompt(`「${key}」の新しい値を入力してください:`, Array.isArray(value) ? value.join(', ') : value);
+                    const newValue = prompt(`「${key}」の新しい値を入力:`, Array.isArray(value) ? value.join(', ') : value);
                     if (newValue !== null) {
                         membersData[currentMemberId].settings[key] = Array.isArray(value) ? newValue.split(',').map(s => s.trim()) : newValue;
-                        renderMemberSettings(); // Re-render to show changes
-                        alert("設定が更新されました（実際には保存処理が必要です）。他のトークにも適用されます。");
+                        renderMemberSettings(); alert("設定が更新されました（保存処理は未実装）。");
                     }
                 });
-
-
-                itemDiv.appendChild(labelSpan);
-                itemDiv.appendChild(valueDiv);
+                itemDiv.appendChild(labelSpan); itemDiv.appendChild(valueDiv);
                 const basicKeys = ['生年月日', 'メンバーカラー', '出身', '方言', '性格', '身長', '体重'];
                 (basicKeys.includes(key) ? basicSettingsContainer : sexualSettingsContainer).appendChild(itemDiv);
             };
-
-            for (const [key, value] of Object.entries(member.settings)) {
-                createSettingItem(key, value);
-            }
+            for (const [key, value] of Object.entries(member.settings)) { createSettingItem(key, value); }
         }
 
-        // --- Actions ---
         function openChat(memberId, isNewTalk) {
             currentMemberId = memberId;
             const member = membersData[memberId];
             chatMemberNameH2.textContent = member.name;
-
-            if (isNewTalk) {
-                // 新しいトークの場合、もし履歴があれば確認する（今回はシンプルに既存履歴をそのまま表示）
-            }
-
             if (!chatHistory[memberId]) {
-                chatHistory[memberId] = [
-                    { type: 'ai', text: `こんにちは！${member.name}だよ。`, senderName: member.name },
-                ];
+                chatHistory[memberId] = [{ type: 'ai', text: `こんにちは！${member.name}だよ。`, senderName: member.name }];
             }
             renderChatMessages();
-            showScreen('chat-screen'); // テーマ適用はshowScreen内で行う
+            showScreen('chat-screen');
         }
 
         function handleSendMessage() {
             const text = messageInput.value.trim();
             if (text === '' || !currentMemberId) return;
-
             chatHistory[currentMemberId].push({ type: 'user', text: text });
             messageInput.value = '';
             renderChatMessages();
-
-            // Simulate AI reply
             setTimeout(() => {
                 const member = membersData[currentMemberId];
-                let aiResponse = "うんうん、それで？";
+                let aiResponse = "うん、それで？";
                 if (text.includes("好き")) aiResponse = "私もだよ！嬉しいな😊";
-                else if (text.includes("何してる")) aiResponse = "君とお話してるよ！";
-
                 chatHistory[currentMemberId].push({ type: 'ai', text: aiResponse, senderName: member.name });
                 renderChatMessages();
             }, 800);
         }
 
-        // --- Event Listeners ---
-        navButtons.settings.addEventListener('click', () => showScreen('common-settings-screen'));
-        navButtons.talk.addEventListener('click', () => showScreen('talk-list-screen'));
-        navButtons.profile.addEventListener('click', () => showScreen('profile-screen'));
-        backToTalkListBtns.forEach(btn => btn.addEventListener('click', () => showScreen('talk-list-screen')));
+        // Event Listeners
+        // Talk List Screen Footer
+        if(navCommonSettingsBtn) navCommonSettingsBtn.addEventListener('click', () => showScreen('common-settings-screen'));
+        if(navTalkBtn) navTalkBtn.addEventListener('click', () => showScreen('talk-list-screen'));
+        if(navProfileBtn) navProfileBtn.addEventListener('click', () => showScreen('profile-screen'));
+        // Common Settings Screen Footer
+        if(navCommonSettingsCsBtn) navCommonSettingsCsBtn.addEventListener('click', () => showScreen('common-settings-screen'));
+        if(navTalkCsBtn) navTalkCsBtn.addEventListener('click', () => showScreen('talk-list-screen'));
+        if(navProfileCsBtn) navProfileCsBtn.addEventListener('click', () => showScreen('profile-screen'));
+        // Profile Screen Footer
+        if(navCommonSettingsPBtn) navCommonSettingsPBtn.addEventListener('click', () => showScreen('common-settings-screen'));
+        if(navTalkPBtn) navTalkPBtn.addEventListener('click', () => showScreen('talk-list-screen'));
+        if(navProfilePBtn) navProfilePBtn.addEventListener('click', () => showScreen('profile-screen'));
 
 
+        document.querySelectorAll('.back-to-talk-list').forEach(btn => btn.addEventListener('click', () => showScreen('talk-list-screen')));
         chatBackToListBtn.addEventListener('click', () => showScreen('talk-list-screen'));
         chatNewTalkBtn.addEventListener('click', () => {
-            if (currentMemberId && confirm(`${membersData[currentMemberId].name}との現在の会話をクリアして新しいトークを開始しますか？`)) {
-                chatHistory[currentMemberId] = [ { type: 'ai', text: `改めて、こんにちは！${membersData[currentMemberId].name}だよ。`, senderName: membersData[currentMemberId].name }];
+            if (currentMemberId && confirm(`${membersData[currentMemberId].name}との会話をクリアしますか？`)) {
+                chatHistory[currentMemberId] = [{ type: 'ai', text: `改めて、こんにちは！${membersData[currentMemberId].name}だよ。`, senderName: membersData[currentMemberId].name }];
                 renderChatMessages();
-                alert("新しいトークを開始しました。");
             }
         });
-        chatMenuBtn.addEventListener('click', () => {
-            if (currentMemberId) {
-                renderMemberSettings();
-                showScreen('member-settings-screen');
-            }
-        });
-
+        chatMenuBtn.addEventListener('click', () => { if (currentMemberId) { renderMemberSettings(); showScreen('member-settings-screen'); }});
         sendMessageBtn.addEventListener('click', handleSendMessage);
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleSendMessage();
-        });
-
+        messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSendMessage(); });
         replySuggestionsDiv.addEventListener('click', (e) => {
             if (e.target.classList.contains('suggestion-btn')) {
-                messageInput.value += (messageInput.value ? ' ' : '') + e.target.textContent;
-                messageInput.focus();
+                messageInput.value += (messageInput.value ? ' ' : '') + e.target.textContent; messageInput.focus();
             }
         });
+        settingsBackToChatBtn.addEventListener('click', () => { if (currentMemberId) showScreen('chat-screen'); });
 
-        settingsBackToChatBtn.addEventListener('click', () => {
-            if (currentMemberId) showScreen('chat-screen');
-        });
-
-
-        // --- Initialization ---
         renderMemberList();
-        showScreen('talk-list-screen'); // 初期画面表示 & デフォルトテーマ適用
+        showScreen('talk-list-screen');
     </script>
 </body>
 </html>
