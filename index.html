@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>チャットサイト</title>
+    <style>
+        :root {
+            --primary-bg: #fdf6e9; /* 全体の背景色 (薄いベージュ) */
+            --header-bg: #f9f9f9;
+            --footer-bg: #f9f9f9;
+            --text-color: #333;
+            --accent-color: #E67E22; /* マコさんのオレンジをアクセントに */
+            --user-bubble-bg: #f0dcb3; /* ユーザーの吹き出し (濃いベージュ) */
+            --ai-bubble-bg: #fff;
+            --border-color: #eee;
+            --inactive-text: #aaa;
+            --black-icon-placeholder: #333; /* 黒丸アイコンの色 */
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden; /* Prevent scrolling of the body itself */
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            height: 100%;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            background-color: var(--primary-bg);
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        header {
+            background-color: var(--header-bg);
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+            min-height: 50px;
+            box-sizing: border-box;
+        }
+
+        header h1, header h2 {
+            margin: 0;
+            font-size: 1.2em;
+            flex-grow: 1;
+            text-align: center;
+        }
+        header h1 { text-align: left; } /* トーク一覧のヘッダー */
+        #chat-screen header h2, #member-settings-screen header h2 { text-align: center; }
+
+
+        header button {
+            background: none;
+            border: none;
+            font-size: 1.2em;
+            cursor: pointer;
+            padding: 5px;
+            color: var(--accent-color);
+        }
+        #chat-screen header button, #member-settings-screen header button { min-width: 40px; text-align: center;}
+        #chat-back-to-list, #settings-back-to-chat { font-size: 1.5em; }
+
+
+        main {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        footer {
+            background-color: var(--footer-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        /* --- Talk List Screen (画像1枚目) --- */
+        #talk-list-screen header h1 {
+            font-size: 1.5em;
+            font-weight: bold;
+            padding-left: 5px;
+        }
+        #member-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .member-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 5px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+        .member-item:last-child {
+            border-bottom: none;
+        }
+        .member-icon-container {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--black-icon-placeholder); /* 黒丸 */
+            margin-right: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-width: 3px;
+            border-style: solid;
+        }
+        .member-name {
+            flex-grow: 1;
+            font-size: 1.1em;
+        }
+        .member-message-count {
+            display: flex;
+            align-items: center;
+            font-size: 0.9em;
+            color: var(--inactive-text);
+        }
+        .member-message-count .icon {
+            font-size: 1.5em; /* 吹き出しアイコン */
+            margin-right: 5px;
+        }
+
+        #talk-list-screen footer {
+            justify-content: space-around;
+        }
+        #talk-list-screen footer button {
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.8em;
+            color: var(--inactive-text);
+            padding: 5px;
+        }
+        #talk-list-screen footer button.active {
+            color: var(--accent-color);
+        }
+        #talk-list-screen footer button::before { /* Placeholder for icons */
+            font-size: 1.8em;
+            margin-bottom: 3px;
+        }
+        #nav-common-settings::before { content: '⚙️'; }
+        #nav-talk::before { content: '💬'; }
+        #nav-profile::before { content: '👤'; }
+
+
+        /* --- Chat Screen (画像2枚目) --- */
+        #chat-screen header {
+            justify-content: space-between;
+        }
+        #chat-new-talk { font-size: 1.4em; } /* ペンと紙 */
+        #chat-menu { font-size: 1.4em; } /* ハンバーガーメニュー */
+
+        #chat-messages {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        .message-bubble {
+            max-width: 70%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .message-bubble.user {
+            background-color: var(--user-bubble-bg);
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+        .message-bubble.ai {
+            background-color: var(--ai-bubble-bg);
+            align-self: flex-start;
+            border: 1px solid #eee;
+            border-bottom-left-radius: 5px;
+        }
+        .ai-meta { /* AIのアイコンと名前用 */
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .ai-icon-chat {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: var(--black-icon-placeholder);
+            margin-right: 8px;
+            border-width: 2px;
+            border-style: solid;
+        }
+        .ai-name-chat {
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        #reply-suggestions {
+            padding: 5px 10px;
+            display: flex;
+            flex-wrap: wrap; /* Allow suggestions to wrap */
+            gap: 8px; /* Spacing between suggestion buttons */
+            border-top: 1px solid var(--border-color);
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+        .suggestion-btn {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 15px;
+            padding: 6px 12px;
+            font-size: 0.9em;
+            cursor: pointer;
+        }
+        .suggestion-btn:hover {
+            background-color: #f0f0f0;
+        }
+
+        #chat-screen footer {
+            padding: 8px;
+            gap: 8px;
+        }
+        #message-input {
+            flex-grow: 1;
+            padding: 10px;
+            border-radius: 20px;
+            border: 1px solid #ccc;
+            font-size: 1em;
+        }
+        #send-message {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.5em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        /* --- Member Settings Screen (画像3枚目) --- */
+        #member-settings-screen main {
+            padding: 15px;
+        }
+        .member-icon-large-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .member-icon-large {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: var(--black-icon-placeholder); /* 黒丸 */
+            border-width: 4px;
+            border-style: solid;
+        }
+        #member-settings-screen h3 {
+            font-size: 1em;
+            color: var(--inactive-text);
+            margin-top: 25px;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            font-size: 1em;
+        }
+        .setting-item .label {
+            color: #555;
+        }
+        .setting-item .value {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            cursor: pointer; /* To indicate it's editable (though not fully implemented here) */
+            min-width: 80px; /* Ensure some width for tags */
+            text-align: center;
+        }
+        /* For multiple values like 性格 */
+        .setting-item .value.multi-value {
+            display: flex;
+            gap: 5px;
+        }
+        .setting-item .value.multi-value span {
+             background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 6px 10px;
+            border-radius: 15px;
+            font-size: 0.9em;
+        }
+        .setting-item input[type="text"].value-input,
+        .setting-item input[type="number"].value-input {
+            border: 1px solid var(--accent-color);
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            text-align: right;
+            max-width: 120px;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Screen 1: Talk List -->
+        <div id="talk-list-screen" class="screen active">
+            <header><h1>トーク</h1></header>
+            <main>
+                <ul id="member-list">
+                    <!-- Member items will be dynamically generated by JS -->
+                </ul>
+            </main>
+            <footer>
+                <button id="nav-common-settings">共通設定</button>
+                <button id="nav-talk" class="active">トーク</button>
+                <button id="nav-profile">プロフィール</button>
+            </footer>
+        </div>
+
+        <!-- Screen 2: Chat Screen -->
+        <div id="chat-screen" class="screen">
+            <header>
+                <button id="chat-back-to-list"><</button>
+                <h2 id="chat-member-name">メンバー名</h2>
+                <button id="chat-new-talk" title="新しいトークを作成">📝</button>
+                <button id="chat-menu" title="メンバー設定">☰</button>
+            </header>
+            <main id="chat-messages-container">
+                 <!-- Chat messages will be here -->
+            </main>
+            <div id="reply-suggestions">
+                <button class="suggestion-btn">気持ちいい？</button>
+                <button class="suggestion-btn">バンバンバンバン</button>
+                <button class="suggestion-btn">ビュルルルル</button>
+            </div>
+            <footer id="chat-footer">
+                <input type="text" id="message-input" placeholder="メッセージを入力...">
+                <button id="send-message" title="送信">➢</button>
+            </footer>
+        </div>
+
+        <!-- Screen 3: Member Settings Screen -->
+        <div id="member-settings-screen" class="screen">
+            <header>
+                <button id="settings-back-to-chat"><</button>
+                <h2 id="settings-member-name">メンバー名 設定</h2>
+            </header>
+            <main id="member-settings-content">
+                <div class="member-icon-large-container">
+                    <div class="member-icon-large" id="settings-member-icon"></div>
+                </div>
+                <h3>基本設定</h3>
+                <div id="basic-settings-container">
+                    <!-- Basic settings will be dynamically generated -->
+                </div>
+                <h3>性的設定</h3>
+                <div id="sexual-settings-container">
+                    <!-- Sexual settings will be dynamically generated -->
+                </div>
+            </main>
+        </div>
+
+        <!-- Screen 4: Common Settings (Placeholder) -->
+        <div id="common-settings-screen" class="screen">
+            <header>
+                <button class="back-to-talk-list"><</button>
+                <h1>共通設定</h1>
+            </header>
+            <main><p>共通設定画面 (未実装)</p></main>
+        </div>
+
+        <!-- Screen 5: Profile Screen (Placeholder) -->
+        <div id="profile-screen" class="screen">
+            <header>
+                <button class="back-to-talk-list"><</button>
+                <h1>プロフィール</h1>
+            </header>
+            <main><p>プロフィール画面 (未実装)</p></main>
+        </div>
+    </div>
+
+    <script>
+        // --- Data ---
+        const memberRingColors = {
+            'マコ': '#E67E22', 'リオ': '#3498DB', 'マヤ': '#8E44AD', 'リク': '#F1C40F',
+            'アヤカ': '#BDC3C7', 'マユカ': '#1ABC9C', 'リマ': '#E74C3C', 'ミイヒ': '#FF69B4', 'ニナ': '#34495E'
+        };
+
+        let membersData = {
+            'mako': { id: 'mako', name: 'マコ', msgCount: 9, settings: { '生年月日': '2001年4月4日', 'メンバーカラー': 'オレンジ', '出身': '福岡', '方言': '軽い博多弁', '性格': ['天然', 'しっかり者'], '身長': '159cm', '体重': '49kg', '胸のサイズ': 'Cカップ', '乳首の色': '薄い茶色', '陰毛': '少し生えている', 'まんこの色': 'ピンク', '性欲': '普通', '好きな体位': '正常位', '感度': 'すぐイッちゃう', '得意な前戯': 'フェラ' } },
+            'rio': { id: 'rio', name: 'リオ', msgCount: 10, settings: { '生年月日': '2002年2月4日', 'メンバーカラー': 'ブルー', '出身': '愛知', '性格': ['クールビューティー', '努力家'], '胸のサイズ': 'Bカップ', /* 他はダミー */ '陰毛': '普通' } },
+            'maya': { id: 'maya', name: 'マヤ', msgCount: 7, settings: { '生年月日': '2002年4月8日', 'メンバーカラー': 'パープル', '出身': '石川', '性格': ['おっとり', '優しい'], '胸のサイズ': 'Dカップ', '陰毛': '薄い' } },
+            'riku': { id: 'riku', name: 'リク', msgCount: 0, settings: { '生年月日': '2002年10月26日', 'メンバーカラー': 'イエロー', '出身': '京都', '性格': ['元気', '関西弁'], '胸のサイズ': 'Aカップ', '陰毛': 'なし' } },
+            'ayaka': { id: 'ayaka', name: 'アヤカ', msgCount: 1, settings: { '生年月日': '2003年6月20日', 'メンバーカラー': 'ホワイト', '出身': '東京', '性格': ['ふわふわ', 'マイペース'], '胸のサイズ': 'Cカップ', '陰毛': '手入れ済み' } },
+            'mayuka': { id: 'mayuka', name: 'マユカ', msgCount: 12, settings: { '生年月日': '2003年11月13日', 'メンバーカラー': 'ライトグリーン', '出身': '京都', '性格': ['カメレオン', 'ラップ担当'], '胸のサイズ': 'Bカップ', '陰毛': '普通' } },
+            'rima': { id: 'rima', name: 'リマ', msgCount: 15, settings: { '生年月日': '2004年3月26日', 'メンバーカラー': 'レッド', '出身': '東京', '性格': ['おしゃれ番長', '英語堪能'], '胸のサイズ': 'Cカップ', '陰毛': '少し' } },
+            'miihi': { id: 'miihi', name: 'ミイヒ', msgCount: 17, settings: { '生年月日': '2004年8月12日', 'メンバーカラー': 'ピンク', '出身': '京都', '性格': ['スマイルメーカー', '癒し'], '胸のサイズ': 'Aカップ', '陰毛': '薄い' } },
+            'nina': { id: 'nina', name: 'ニナ', msgCount: 2, settings: { '生年月日': '2005年2月27日', 'メンバーカラー': 'ネイビー', '出身': 'アメリカ ワシントン州', '性格': ['末っ子', 'パワフルボーカル'], '胸のサイズ': 'Dカップ', '陰毛': '普通' } },
+        };
+        // Initialize missing settings to prevent errors
+        Object.values(membersData).forEach(member => {
+            const defaultSettings = { '生年月日': '', 'メンバーカラー': '', '出身': '', '方言': '', '性格': [], '身長': '', '体重': '', '胸のサイズ': '', '乳首の色': '', '陰毛': '', 'まんこの色': '', '性欲': '', '好きな体位': '', '感度': '', '得意な前戯': '' };
+            member.settings = { ...defaultSettings, ...member.settings };
+        });
+
+
+        let currentMemberId = null;
+        let chatHistory = {}; // { memberId: [{ type: 'ai'/'user', text: '...', senderName: 'マコ' (for AI) }] }
+
+        // --- DOM Elements ---
+        const screens = document.querySelectorAll('.screen');
+        const talkListScreen = document.getElementById('talk-list-screen');
+        const memberListUl = document.getElementById('member-list');
+        const navCommonSettingsBtn = document.getElementById('nav-common-settings');
+        const navTalkBtn = document.getElementById('nav-talk');
+        const navProfileBtn = document.getElementById('nav-profile');
+
+        const chatScreen = document.getElementById('chat-screen');
+        const chatBackToListBtn = document.getElementById('chat-back-to-list');
+        const chatMemberNameH2 = document.getElementById('chat-member-name');
+        const chatNewTalkBtn = document.getElementById('chat-new-talk');
+        const chatMenuBtn = document.getElementById('chat-menu');
+        const chatMessagesContainer = document.getElementById('chat-messages-container');
+        const replySuggestionsDiv = document.getElementById('reply-suggestions');
+        const messageInput = document.getElementById('message-input');
+        const sendMessageBtn = document.getElementById('send-message');
+
+        const memberSettingsScreen = document.getElementById('member-settings-screen');
+        const settingsBackToChatBtn = document.getElementById('settings-back-to-chat');
+        const settingsMemberNameH2 = document.getElementById('settings-member-name');
+        const settingsMemberIconDiv = document.getElementById('settings-member-icon');
+        const basicSettingsContainer = document.getElementById('basic-settings-container');
+        const sexualSettingsContainer = document.getElementById('sexual-settings-container');
+
+        const commonSettingsScreen = document.getElementById('common-settings-screen');
+        const profileScreen = document.getElementById('profile-screen');
+        const backToTalkListBtns = document.querySelectorAll('.back-to-talk-list');
+
+
+        // --- Navigation ---
+        function showScreen(screenId) {
+            screens.forEach(screen => screen.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            // Update footer active state for main screens
+            if (screenId === 'talk-list-screen') {
+                navTalkBtn.classList.add('active');
+                navCommonSettingsBtn.classList.remove('active');
+                navProfileBtn.classList.remove('active');
+            } else if (screenId === 'common-settings-screen') {
+                navCommonSettingsBtn.classList.add('active');
+                navTalkBtn.classList.remove('active');
+                navProfileBtn.classList.remove('active');
+            } else if (screenId === 'profile-screen') {
+                navProfileBtn.classList.add('active');
+                navTalkBtn.classList.remove('active');
+                navCommonSettingsBtn.classList.remove('active');
+            }
+        }
+
+        // --- Rendering ---
+        function renderMemberList() {
+            memberListUl.innerHTML = '';
+            Object.values(membersData).forEach(member => {
+                const li = document.createElement('li');
+                li.className = 'member-item';
+                li.dataset.memberId = member.id;
+
+                const iconDiv = document.createElement('div');
+                iconDiv.className = 'member-icon-container';
+                iconDiv.style.borderColor = memberRingColors[member.name] || '#ccc';
+
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'member-name';
+                nameSpan.textContent = member.name;
+
+                const countDiv = document.createElement('div');
+                countDiv.className = 'member-message-count';
+                countDiv.innerHTML = `<span class="icon">💬</span> ${member.msgCount}`;
+
+                // Click on member name/icon area
+                const mainClickArea = document.createElement('div');
+                mainClickArea.style.display = 'flex';
+                mainClickArea.style.alignItems = 'center';
+                mainClickArea.style.flexGrow = '1';
+                mainClickArea.appendChild(iconDiv);
+                mainClickArea.appendChild(nameSpan);
+                mainClickArea.addEventListener('click', () => openChat(member.id, true)); // true for new talk
+
+                // Click on message count area
+                countDiv.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent li click
+                    openChat(member.id, false); // false for existing/past talk
+                });
+
+                li.appendChild(mainClickArea);
+                li.appendChild(countDiv);
+                memberListUl.appendChild(li);
+            });
+        }
+
+        function renderChatMessages() {
+            chatMessagesContainer.innerHTML = '';
+            if (!currentMemberId || !chatHistory[currentMemberId]) {
+                // Add a placeholder if no history
+                const placeholder = document.createElement('p');
+                placeholder.textContent = 'メッセージはありません。';
+                placeholder.style.textAlign = 'center';
+                placeholder.style.color = '#aaa';
+                chatMessagesContainer.appendChild(placeholder);
+                return;
+            }
+
+            chatHistory[currentMemberId].forEach((msg, index) => {
+                const bubbleWrapper = document.createElement('div');
+                if (msg.type === 'ai') {
+                    const member = membersData[currentMemberId];
+                    bubbleWrapper.className = 'ai-meta';
+
+                    const iconDiv = document.createElement('div');
+                    iconDiv.className = 'ai-icon-chat';
+                    iconDiv.style.borderColor = memberRingColors[member.name] || '#ccc';
+                    bubbleWrapper.appendChild(iconDiv);
+
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = 'ai-name-chat';
+                    nameSpan.textContent = msg.senderName || member.name;
+                    bubbleWrapper.appendChild(nameSpan);
+                }
+
+                const bubble = document.createElement('div');
+                bubble.className = `message-bubble ${msg.type}`;
+                bubble.textContent = msg.text;
+                bubble.dataset.messageIndex = index;
+
+
+                if (msg.type === 'ai') {
+                     // Click for "swipe to regenerate" placeholder
+                    bubble.addEventListener('click', () => {
+                        alert(`AIメッセージ「${msg.text}」を再生成しますか？ (スワイプ機能はUIデモのためクリックで代替)`);
+                        // Here you would call AI to regenerate
+                    });
+                    // Append bubble to wrapper, then wrapper to container
+                    const aiMessageContainer = document.createElement('div'); // To group icon/name and bubble correctly
+                    aiMessageContainer.style.alignSelf = 'flex-start';
+                    aiMessageContainer.appendChild(bubbleWrapper);
+                    aiMessageContainer.appendChild(bubble);
+                    chatMessagesContainer.appendChild(aiMessageContainer);
+
+                } else { // user message
+                    bubble.addEventListener('mousedown', (e) => { // Simulate long press
+                        let pressTimer = window.setTimeout(() => {
+                            alert(`メッセージ「${msg.text}」を編集しますか？\n(編集すると以降のメッセージがクリアされ、AIが再生成します - UIデモ)`);
+                            // Implement actual editing UI and logic here
+                        }, 1000); // 1 second for long press
+                        bubble.addEventListener('mouseup', () => clearTimeout(pressTimer));
+                        bubble.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+                    });
+                    chatMessagesContainer.appendChild(bubble);
+                }
+            });
+            chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight; // Scroll to bottom
+        }
+
+        function renderMemberSettings() {
+            if (!currentMemberId) return;
+            const member = membersData[currentMemberId];
+            settingsMemberNameH2.textContent = `${member.name} 設定`;
+            settingsMemberIconDiv.style.borderColor = memberRingColors[member.name] || '#ccc';
+
+            basicSettingsContainer.innerHTML = '';
+            sexualSettingsContainer.innerHTML = '';
+
+            const createSettingItem = (key, value, category) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'setting-item';
+                const labelSpan = document.createElement('span');
+                labelSpan.className = 'label';
+                labelSpan.textContent = key;
+
+                const valueDiv = document.createElement('div');
+
+                if (Array.isArray(value)) { // For 性格 etc.
+                    valueDiv.className = 'value multi-value';
+                    value.forEach(v => {
+                        const valSpan = document.createElement('span');
+                        valSpan.textContent = v;
+                        valueDiv.appendChild(valSpan);
+                    });
+                } else {
+                    valueDiv.className = 'value';
+                    valueDiv.textContent = value || '未設定'; // Show '未設定' for empty strings
+                }
+                 // Simple input for demonstration on click. In a real app, use modals or inline editing.
+                valueDiv.addEventListener('click', () => {
+                    const newValue = prompt(`「${key}」の新しい値を入力してください:`, Array.isArray(value) ? value.join(', ') : value);
+                    if (newValue !== null) {
+                        // Basic update, no type checking or complex array handling here for brevity
+                        membersData[currentMemberId].settings[key] = Array.isArray(value) ? newValue.split(',').map(s => s.trim()) : newValue;
+                        // TODO: Save to localStorage
+                        renderMemberSettings(); // Re-render to show changes
+                        alert("設定が更新されました（実際には保存処理が必要です）。他のトークにも適用されます。");
+                    }
+                });
+
+
+                itemDiv.appendChild(labelSpan);
+                itemDiv.appendChild(valueDiv);
+                if (['生年月日', 'メンバーカラー', '出身', '方言', '性格', '身長', '体重'].includes(key)) {
+                    basicSettingsContainer.appendChild(itemDiv);
+                } else {
+                    sexualSettingsContainer.appendChild(itemDiv);
+                }
+            };
+
+            for (const [key, value] of Object.entries(member.settings)) {
+                createSettingItem(key, value);
+            }
+        }
+
+        // --- Actions ---
+        function openChat(memberId, isNewTalk) {
+            currentMemberId = memberId;
+            const member = membersData[memberId];
+            chatMemberNameH2.textContent = member.name;
+
+            if (isNewTalk) {
+                // For a truly new talk, you might assign a new talk ID
+                // For this demo, "new talk" might mean clearing history or starting fresh if no history
+                if (!chatHistory[memberId] || confirm(`${member.name}との新しいトークを開始しますか？（現在の履歴は保持されますが、表示上は新規になります）`)) {
+                     // If truly new, you might not load any history.
+                     // For demo, let's make "new talk" from list screen just open the chat.
+                     // The "new talk" button on chat screen will handle clearing.
+                }
+            }
+
+            // Initialize chat history for the member if it doesn't exist
+            if (!chatHistory[memberId]) {
+                chatHistory[memberId] = [
+                    { type: 'ai', text: `こんにちは！${member.name}だよ。`, senderName: member.name },
+                    // Add more initial messages if desired
+                ];
+            }
+            renderChatMessages();
+            showScreen('chat-screen');
+        }
+
+        function handleSendMessage() {
+            const text = messageInput.value.trim();
+            if (text === '' || !currentMemberId) return;
+
+            chatHistory[currentMemberId].push({ type: 'user', text: text });
+            messageInput.value = '';
+            renderChatMessages();
+
+            // Simulate AI reply
+            setTimeout(() => {
+                const member = membersData[currentMemberId];
+                // Basic AI response placeholder
+                let aiResponse = "うんうん、それで？";
+                if (text.includes("好き")) aiResponse = "私もだよ！嬉しいな😊";
+                else if (text.includes("何してる")) aiResponse = "君とお話してるよ！";
+
+                chatHistory[currentMemberId].push({ type: 'ai', text: aiResponse, senderName: member.name });
+                renderChatMessages();
+            }, 1000);
+        }
+
+        // --- Event Listeners ---
+        navCommonSettingsBtn.addEventListener('click', () => showScreen('common-settings-screen'));
+        navTalkBtn.addEventListener('click', () => showScreen('talk-list-screen'));
+        navProfileBtn.addEventListener('click', () => showScreen('profile-screen'));
+        backToTalkListBtns.forEach(btn => btn.addEventListener('click', () => showScreen('talk-list-screen')));
+
+
+        chatBackToListBtn.addEventListener('click', () => showScreen('talk-list-screen'));
+        chatNewTalkBtn.addEventListener('click', () => {
+            if (currentMemberId && confirm(`${membersData[currentMemberId].name}との現在の会話をクリアして新しいトークを開始しますか？`)) {
+                chatHistory[currentMemberId] = [ { type: 'ai', text: `改めて、こんにちは！${membersData[currentMemberId].name}だよ。`, senderName: membersData[currentMemberId].name }];
+                renderChatMessages();
+                alert("新しいトークを開始しました。");
+            }
+        });
+        chatMenuBtn.addEventListener('click', () => {
+            if (currentMemberId) {
+                renderMemberSettings();
+                showScreen('member-settings-screen');
+            }
+        });
+
+        sendMessageBtn.addEventListener('click', handleSendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSendMessage();
+        });
+
+        replySuggestionsDiv.addEventListener('click', (e) => {
+            if (e.target.classList.contains('suggestion-btn')) {
+                messageInput.value += (messageInput.value ? ' ' : '') + e.target.textContent;
+                messageInput.focus();
+            }
+        });
+
+        settingsBackToChatBtn.addEventListener('click', () => {
+            if (currentMemberId) showScreen('chat-screen');
+        });
+
+
+        // --- Initialization ---
+        renderMemberList();
+        // Load data from localStorage if available (conceptual)
+        // loadDataFromLocalStorage();
+    </script>
+</body>
+</html>
