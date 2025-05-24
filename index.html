@@ -27,14 +27,14 @@
             color: var(--text-color);
             display: flex;
             flex-direction: column;
-            height: 100vh;
+            height: 100dvh; /* 動的ビューポートの高さに固定 */
             overflow: hidden;
         }
         #app {
             display: flex;
             flex-direction: column;
             flex-grow: 1;
-            height: 100%;
+            height: 100%; /* 親(body)の高さ一杯に広がる */
             overflow: hidden;
         }
         .screen {
@@ -132,21 +132,21 @@
         }
         #talk-list-screen main,
         #common-settings-screen main,
-        #profile-screen main { padding: 0; } /* フッターがある画面のmainのpadding */
+        #profile-screen main { padding: 0; }
 
         #chat-screen main { padding: 10px 0 0 0; }
         #member-settings-screen main { padding: 15px; }
 
 
-        /* フッターの共通スタイル (トーク一覧、共通設定、プロフィール画面用) */
+        /* フッターの共通スタイル */
         #talk-list-screen > footer,
         #common-settings-screen > footer,
         #profile-screen > footer {
             border-top: 1px solid #dadada;
             padding: 0;
             display: flex;
-            align-items: center; /* アイテムを垂直方向に中央揃え */
-            justify-content: space-around; /* 各ボタンを均等に配置 */
+            align-items: center;
+            justify-content: space-around;
             flex-shrink: 0;
             background-color: #f7f7f7;
             height: 52px;
@@ -155,20 +155,19 @@
         #talk-list-screen footer button,
         #common-settings-screen footer button,
         #profile-screen footer button {
-            flex-direction: column; /* アイコンとテキストを縦に並べる */
-            align-items: center;   /* BOX内で左右中央揃え */
-            justify-content: center; /* BOX内で上下中央揃え */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             font-size: 0.65em;
-            color: var(--inactive-text); /* デフォルトの文字色 (JSで上書き) */
+            color: var(--inactive-text);
             padding: 4px 0;
-            flex: 1; /* 各ボタンが均等に幅を取る (BOXとして機能) */
+            flex: 1;
             display: flex;
             background:none;
             border:none;
             cursor:pointer;
-            height: 100%; /* ボタンの高さをフッターに合わせる */
+            height: 100%;
         }
-        /* アクティブ時の文字色はJSで #000000 に設定 */
 
         #talk-list-screen footer button img,
         #common-settings-screen footer button img,
@@ -183,7 +182,7 @@
             display:block;
         }
 
-        /* --- Talk List Screen (main内部のリスト) --- */
+        /* --- Talk List Screen --- */
         #member-list {
             list-style: none;
             padding: 0;
@@ -237,7 +236,7 @@
         }
 
 
-        /* --- Chat Screen (下部固定エリアとメッセージ) --- */
+        /* --- Chat Screen --- */
         #reply-suggestions-wrapper {
             padding: 8px 10px;
             border-top: 1px solid var(--border-color);
@@ -265,7 +264,7 @@
         }
         .suggestion-btn:active { background-color: rgba(255,255,255,1); }
 
-        #chat-input-area { /* HTMLではfooterタグ */
+        #chat-input-area {
             padding: 8px 10px;
             gap: 8px;
             background-color: #f0f0f0;
@@ -380,7 +379,7 @@
             margin-bottom: 25px;
             padding-top: 10px;
         }
-        .member-icon-large { /* HTMLでは settings-member-icon-wrapper */
+        .member-icon-large {
             width: 90px;
             height: 90px;
             border-radius: 50%;
@@ -392,7 +391,7 @@
             overflow:hidden;
             background-color: #eee;
         }
-        .member-icon-large img { /* HTMLでは settings-member-icon */
+        .member-icon-large img {
             width:100%;
             height:100%;
             object-fit:cover;
@@ -440,7 +439,7 @@
          .setting-item .value:active { background-color: #fff; }
 
 
-        /* スクロールバーのスタイル（目立たないように） */
+        /* スクロールバーのスタイル */
         main::-webkit-scrollbar, #reply-suggestions::-webkit-scrollbar {
             width: 5px;
             height: 5px;
@@ -521,14 +520,13 @@
                     <!-- Sexual settings will be dynamically generated -->
                 </div>
             </main>
-            <!-- メンバー設定画面には下部フッターナビは不要 -->
         </div>
 
         <!-- Screen 4: Common Settings -->
         <div id="common-settings-screen" class="screen">
             <header><button class="back-to-talk-list" title="戻る"><img src="image/icon/header_back.png" alt="戻る"></button><h1>共通設定</h1></header>
             <main><p style="padding:15px;">共通設定画面 (未実装)</p></main>
-            <footer> <!-- トーク一覧と同じフッター -->
+            <footer>
                 <button id="nav-common-settings-cs"><img src="image/icon/nav_settings_off.png" alt="共通設定"><span>共通設定</span></button>
                 <button id="nav-talk-cs"><img src="image/icon/nav_talk_off.png" alt="トーク"><span>トーク</span></button>
                 <button id="nav-profile-cs"><img src="image/icon/nav_profile_off.png" alt="プロフィール"><span>プロフィール</span></button>
@@ -539,7 +537,7 @@
         <div id="profile-screen" class="screen">
             <header><button class="back-to-talk-list" title="戻る"><img src="image/icon/header_back.png" alt="戻る"></button><h1>プロフィール</h1></header>
             <main><p style="padding:15px;">プロフィール画面 (未実装)</p></main>
-            <footer> <!-- トーク一覧と同じフッター -->
+            <footer>
                 <button id="nav-common-settings-p"><img src="image/icon/nav_settings_off.png" alt="共通設定"><span>共通設定</span></button>
                 <button id="nav-talk-p"><img src="image/icon/nav_talk_off.png" alt="トーク"><span>トーク</span></button>
                 <button id="nav-profile-p"><img src="image/icon/nav_profile_off.png" alt="プロフィール"><span>プロフィール</span></button>
@@ -585,23 +583,17 @@
         const screens = document.querySelectorAll('.screen');
         const memberListUl = document.getElementById('member-list');
 
-        // フッターナビボタンの参照 (IDが重複するため、各画面ごとに取得するか、クラスでまとめて取得する)
-        // 今回はシンプルに、イベントリスナーは talk-list-screen のフッターにのみ設定し、
-        // 他の画面のフッターボタンクリックは、それらのボタンに個別のIDを振って対応
         const navCommonSettingsBtn = document.getElementById('nav-common-settings');
         const navTalkBtn = document.getElementById('nav-talk');
         const navProfileBtn = document.getElementById('nav-profile');
-        // Common Settings Screenのフッターボタン
         const navCommonSettingsCsBtn = document.getElementById('nav-common-settings-cs');
         const navTalkCsBtn = document.getElementById('nav-talk-cs');
         const navProfileCsBtn = document.getElementById('nav-profile-cs');
-        // Profile Screenのフッターボタン
         const navCommonSettingsPBtn = document.getElementById('nav-common-settings-p');
         const navTalkPBtn = document.getElementById('nav-talk-p');
         const navProfilePBtn = document.getElementById('nav-profile-p');
 
 
-        const chatScreen = document.getElementById('chat-screen');
         const chatMainScrollArea = document.getElementById('chat-main-scroll-area');
         const chatBackToListBtn = document.getElementById('chat-back-to-list');
         const chatMemberNameH2 = document.getElementById('chat-member-name');
@@ -613,7 +605,6 @@
         const sendMessageBtn = document.getElementById('send-message');
         const sendMessageImg = sendMessageBtn.querySelector('img');
 
-        const memberSettingsScreen = document.getElementById('member-settings-screen');
         const settingsBackToChatBtn = document.getElementById('settings-back-to-chat');
         const settingsMemberNameH2 = document.getElementById('settings-member-name');
         const settingsMemberIcon = document.getElementById('settings-member-icon');
@@ -647,32 +638,29 @@
 
         function updateFooterNavIcons(activeScreenId) {
             const allNavButtons = [
-                // Talk List Screen Footer
                 { btn: navCommonSettingsBtn, screen: 'common-settings-screen', baseName: 'nav_settings' },
                 { btn: navTalkBtn, screen: 'talk-list-screen', baseName: 'nav_talk' },
                 { btn: navProfileBtn, screen: 'profile-screen', baseName: 'nav_profile' },
-                // Common Settings Screen Footer
                 { btn: navCommonSettingsCsBtn, screen: 'common-settings-screen', baseName: 'nav_settings' },
                 { btn: navTalkCsBtn, screen: 'talk-list-screen', baseName: 'nav_talk' },
                 { btn: navProfileCsBtn, screen: 'profile-screen', baseName: 'nav_profile' },
-                // Profile Screen Footer
                 { btn: navCommonSettingsPBtn, screen: 'common-settings-screen', baseName: 'nav_settings' },
                 { btn: navTalkPBtn, screen: 'talk-list-screen', baseName: 'nav_talk' },
                 { btn: navProfilePBtn, screen: 'profile-screen', baseName: 'nav_profile' },
             ];
 
             allNavButtons.forEach(item => {
-                if (!item.btn) return; // ボタン要素が存在しない場合はスキップ
+                if (!item.btn) return;
                 const img = item.btn.querySelector('img');
                 const span = item.btn.querySelector('span');
                 if (!img || !span) return;
 
                 if (item.screen === activeScreenId) {
                     img.src = ICON_PATH + item.baseName + '_on.png';
-                    span.style.color = '#000000'; // アクティブ時は黒文字
+                    span.style.color = '#000000';
                 } else {
                     img.src = ICON_PATH + item.baseName + '_off.png';
-                    span.style.color = ''; // デフォルトの色 (CSSの --inactive-text が適用される)
+                    span.style.color = '';
                 }
             });
         }
@@ -839,15 +827,12 @@
         }
 
         // Event Listeners
-        // Talk List Screen Footer
         if(navCommonSettingsBtn) navCommonSettingsBtn.addEventListener('click', () => showScreen('common-settings-screen'));
         if(navTalkBtn) navTalkBtn.addEventListener('click', () => showScreen('talk-list-screen'));
         if(navProfileBtn) navProfileBtn.addEventListener('click', () => showScreen('profile-screen'));
-        // Common Settings Screen Footer
         if(navCommonSettingsCsBtn) navCommonSettingsCsBtn.addEventListener('click', () => showScreen('common-settings-screen'));
         if(navTalkCsBtn) navTalkCsBtn.addEventListener('click', () => showScreen('talk-list-screen'));
         if(navProfileCsBtn) navProfileCsBtn.addEventListener('click', () => showScreen('profile-screen'));
-        // Profile Screen Footer
         if(navCommonSettingsPBtn) navCommonSettingsPBtn.addEventListener('click', () => showScreen('common-settings-screen'));
         if(navTalkPBtn) navTalkPBtn.addEventListener('click', () => showScreen('talk-list-screen'));
         if(navProfilePBtn) navProfilePBtn.addEventListener('click', () => showScreen('profile-screen'));
