@@ -307,9 +307,18 @@
                 document.getElementById('talk-list-screen').classList.add('active'); screenId = 'talk-list-screen';
             }
             updateFooterNavIcons(screenId);
-            if (screenId === 'chat-screen' || screenId === 'member-settings-screen') {
+
+            if (screenId === 'chat-screen') {
                 if (currentMemberId) applyTheme(currentMemberId);
-            } else { resetThemeToDefault(); }
+                setupChatEventListeners(); // チャット画面表示時にリスナー設定
+            } else {
+                cleanupChatEventListeners(); // 他の画面ではチャットリスナー解除
+                if (screenId === 'member-settings-screen' && currentMemberId) {
+                    applyTheme(currentMemberId);
+                } else {
+                    resetThemeToDefault();
+                }
+            }
         }
 
         function createSettingItemDOM(container, labelText, value, type = 'text', options = [], dataKey, dataObject) {
@@ -415,7 +424,7 @@
             settingsMemberIcon.src = ICON_PATH + (member.faceIconFile || 'default_face.png'); settingsMemberIcon.alt = member.name;
             if(settingsMemberIconWrapper) settingsMemberIconWrapper.style.borderColor = member.theme.accentColor;
             basicSettingsContainer.innerHTML = ''; sexualSettingsContainer.innerHTML = '';
-            const createMemberSettingItem = (key, value) => { // renderMemberSettings内でのみ使うので別名に
+            const createMemberSettingItem = (key, value) => {
                 const itemDiv = document.createElement('div'); itemDiv.className = 'setting-item';
                 const labelSpan = document.createElement('span'); labelSpan.className = 'label'; labelSpan.textContent = key; itemDiv.appendChild(labelSpan);
                 const valueDiv = document.createElement('div');
@@ -462,14 +471,45 @@
             } catch (error) { console.error('Error calling Gemini API:', error); return `(APIエラー: ${error.message})`; }
         }
 
-
         function openChat(memberId, isNewTalk) {
             currentMemberId = memberId; const member = membersData[memberId];
             chatMemberNameH2.textContent = member.name;
             if (!chatHistory[memberId]) { chatHistory[memberId] = [{ type: 'ai', text: `こんにちは！${member.name}だよ。`, senderName: member.name }]; }
-            renderChatMessages(); renderReplySuggestions(); showScreen('chat-screen');
+            renderChatMessages(); renderReplySuggestions();
+            setupChatEventListeners(); // チャット画面表示時にリスナーを設定
+            showScreen('chat-screen');
         }
+
+        // イベントリスナー関数をグローバルに定義 (removeEventListenerで参照できるように)
+        function handleSendButtonClick() {
+            console.log("Send button clicked");
+            handleSendMessage();
+        }
+        function handleMessageInputKeypress(e) {
+            if (e.key === 'Enter' && !sendMessageBtn.disabled) {
+                console.log("Enter key pressed in input");
+                handleSendMessage();
+            }
+        }
+
+        function setupChatEventListeners() {
+            console.log("Setting up chat event listeners");
+            // 既存のリスナーを念のため削除してから登録
+            sendMessageBtn.removeEventListener('click', handleSendButtonClick);
+            messageInput.removeEventListener('keypress', handleMessageInputKeypress);
+
+            sendMessageBtn.addEventListener('click', handleSendButtonClick);
+            messageInput.addEventListener('keypress', handleMessageInputKeypress);
+        }
+
+        function cleanupChatEventListeners() {
+            console.log("Cleaning up chat event listeners");
+            sendMessageBtn.removeEventListener('click', handleSendButtonClick);
+            messageInput.removeEventListener('keypress', handleMessageInputKeypress);
+        }
+
         async function handleSendMessage() {
+            console.log("handleSendMessage called");
             const text = messageInput.value.trim(); if (text === '' || !currentMemberId) return;
             chatHistory[currentMemberId].push({ type: 'user', text: text }); messageInput.value = '';
             renderChatMessages(); sendMessageBtn.disabled = true;
@@ -490,19 +530,22 @@
             }
         }
 
-        // Event Listeners
+        // --- 初期イベントリスナー登録 (フッターナビなど) ---
         document.querySelectorAll('.main-footer-nav button').forEach(button => {
             button.addEventListener('click', () => { const id = button.id; if (id.includes('settings')) showScreen('common-settings-screen'); else if (id.includes('talk')) showScreen('talk-list-screen'); else if (id.includes('profile')) showScreen('profile-settings-screen'); });
         });
         document.querySelectorAll('.back-to-talk-list-cs, .back-to-talk-list-p').forEach(btn => btn.addEventListener('click', () => showScreen('talk-list-screen')));
-        chatBackToListBtn.addEventListener('click', () => showScreen('talk-list-screen'));
+        chatBackToListBtn.addEventListener('click', () => {
+            cleanupChatEventListeners(); // チャット画面を離れる際にリスナー解除
+            showScreen('talk-list-screen');
+        });
         chatNewTalkBtn.addEventListener('click', () => { if (currentMemberId && confirm(`${membersData[currentMemberId].name}との会話をクリアしますか？`)) { chatHistory[currentMemberId] = [{ type: 'ai', text: `改めて、こんにちは！${membersData[currentMemberId].name}だよ。`, senderName: membersData[currentMemberId].name }]; renderChatMessages(); renderReplySuggestions(); } });
-        chatMenuBtn.addEventListener('click', () => { if (currentMemberId) { const promptText = generateFullPrompt(); promptDisplayMain.textContent = promptText; showScreen('prompt-display-screen'); } else { alert("先にメンバーを選択してください。");} });
-        sendMessageBtn.addEventListener('click', handleSendMessage);
-        messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !sendMessageBtn.disabled) handleSendMessage(); });
-        // replySuggestionsDiv のイベントリスナーは renderReplySuggestions 内で個別に設定
-        settingsBackToChatBtn.addEventListener('click', () => { if (currentMemberId) showScreen('chat-screen'); else showScreen('talk-list-screen');});
-        promptBackBtn.addEventListener('click', () => showScreen(lastActiveScreen || (currentMemberId ? 'chat-screen' : 'talk-list-screen')));
+        chatMenuBtn.addEventListener('click', () => { if (currentMemberId) { const promptText = generateFullPrompt(); promptDisplayMain.textContent = promptText; cleanupChatEventListeners(); showScreen('prompt-display-screen'); } else { alert("先にメンバーを選択してください。");} });
+        settingsBackToChatBtn.addEventListener('click', () => { if (currentMemberId) { setupChatEventListeners(); showScreen('chat-screen');} else showScreen('talk-list-screen');});
+        promptBackBtn.addEventListener('click', () => {
+             if(lastActiveScreen === 'chat-screen' && currentMemberId) setupChatEventListeners();
+             showScreen(lastActiveScreen || (currentMemberId ? 'chat-screen' : 'talk-list-screen'));
+        });
 
         renderMemberList(); renderProfileSettingsScreen(); renderCommonSettingsScreen(); renderReplySuggestions();
         showScreen('talk-list-screen');
