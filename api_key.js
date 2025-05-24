@@ -1,0 +1,2 @@
+// api_key.js
+const MY_GEMINI_API_KEY = "YOUR_ACTUAL_GEMINI_API_KEY";
