@@ -9,18 +9,19 @@
         :root {
             --app-overall-bg: #f0f2f5;
             --talk-list-bg: #ffffff;
-            --current-chat-bg: #fdf6e9; /* デフォルトはマコさんテーマの背景 */
-            --current-chat-accent: #E67E22; /* デフォルトはマコさんテーマのアクセント */
-            --current-user-bubble-bg: #f0dcb3; /* デフォルトはマコさんテーマのユーザー吹き出し */
+            --current-chat-bg: #fdf6e9;
+            --current-chat-accent: #E67E22;
+            --current-user-bubble-bg: #f0dcb3;
             --ai-bubble-bg: #ffffff;
             --ai-bubble-border: #e8e8e8;
-            --header-text-color: #1c1e21; /* 少し濃いめの黒 */
+            --header-text-color: #1c1e21;
             --text-color: #333333;
-            --border-color: #e0e0e0; /* 通常の境界線 */
-            --light-border-color: #f0f0f0; /* 薄い境界線 */
-            --inactive-text: #888888; /* フッター非アクティブ時の文字色 */
+            --border-color: #e0e0e0;
+            --light-border-color: #f0f0f0;
+            --inactive-text: #888888;
+            --input-area-bg: #f0f2f5;
         }
-        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--app-overall-bg); color: var(--text-color); display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--app-overall-bg); color: var(--text-color); display: flex; flex-direction: column; height: 100dvh; overflow: hidden; overscroll-behavior-y: contain; }
         #app { display: flex; flex-direction: column; flex-grow: 1; height: 100%; overflow: hidden; }
         .screen { display: none; flex-direction: column; height: 100%; overflow: hidden; }
         .screen.active { display: flex; }
@@ -69,16 +70,16 @@
         .member-message-count { display: flex; align-items: center; font-size: 0.9em; color: var(--inactive-text); padding: 5px 8px; }
         .member-message-count img { width: 18px; height: 18px; margin-right: 5px; }
 
-        #reply-suggestions-wrapper { padding: 8px 10px; border-top: 1px solid var(--border-color); background-color: var(--current-chat-bg); flex-shrink: 0; box-shadow: 0 -1px 2px rgba(0,0,0,0.03); }
+        #reply-suggestions-wrapper { padding: 8px 10px 6px 10px; background-color: var(--input-area-bg); flex-shrink: 0; }
         #reply-suggestions { display: flex; flex-wrap: nowrap; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
-        .suggestion-btn { background-color: rgba(255,255,255,0.8); border: 1px solid #ccc; border-radius: 16px; padding: 7px 14px; font-size: 0.85em; cursor: pointer; white-space: nowrap; color: #333; box-shadow: 0 1px 1px rgba(0,0,0,0.05); }
-        .suggestion-btn:active { background-color: rgba(255,255,255,1); }
-        #chat-input-area { padding: 8px 10px; gap: 8px; background-color: #f0f0f0; border-top: 1px solid #ccc; display: flex; align-items: center; flex-shrink: 0; }
-        #message-input { flex-grow: 1; padding: 10px 15px; border-radius: 20px; border: 1px solid #d0d0d0; font-size: 1em; background-color: #fff; }
-        #message-input:focus { outline: none; border-color: var(--current-chat-accent); }
-        #send-message { background-color: transparent; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; padding:0; flex-shrink: 0; }
-        #send-message img { width: 28px; height: 28px; }
-        #send-message:active img { transform: scale(0.95); }
+        .suggestion-btn { background-color: #ffffff; border: 1px solid #d0d0d0; border-radius: 18px; padding: 6px 12px; font-size: 0.8em; cursor: pointer; white-space: nowrap; color: #333; -webkit-tap-highlight-color: transparent; }
+        .suggestion-btn:active { background-color: #f0f0f0; }
+        #chat-input-area { padding: 8px 10px 10px 10px; gap: 8px; background-color: var(--input-area-bg); display: flex; align-items: center; flex-shrink: 0; }
+        #message-input { flex-grow: 1; padding: 10px 18px; border-radius: 22px; border: none; font-size: 1em; background-color: #ffffff; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        #message-input:focus { outline: none; }
+        #send-message { background-color: transparent; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center; cursor: pointer; padding:0; flex-shrink: 0; }
+        #send-message img { width: 26px; height: 26px; }
+        #send-message:active img { transform: scale(0.9); }
         #chat-messages-container { display: flex; flex-direction: column; padding: 0 0 10px 0; }
         .message-bubble-wrapper { display: flex; margin-bottom: 10px; padding: 0 10px; width: calc(100% - 20px); box-sizing: border-box; }
         .message-bubble-wrapper.user { justify-content: flex-end; }
@@ -87,8 +88,8 @@
         .ai-icon-chat img { width:100%; height:100%; object-fit:cover; }
         .ai-message-content { display: flex; flex-direction: column; align-items: flex-start; }
         .ai-name-chat { font-size: 0.8em; color: #555; margin-bottom: 3px; padding-left: 2px; }
-        .message-bubble { max-width: 78%; padding: 10px 14px; border-radius: 18px; line-height: 1.45; word-wrap: break-word; box-shadow: 0 1px 1px rgba(0,0,0,0.08); }
-        .message-bubble.user { background-color: var(--current-user-bubble-bg); color: var(--text-color); border-bottom-right-radius: 5px; }
+        .message-bubble { max-width: 78%; padding: 10px 14px; border-radius: 18px; line-height: 1.45; word-wrap: break-word; }
+        .message-bubble.user { background-color: var(--current-user-bubble-bg); color: var(--text-color); border-bottom-right-radius: 5px; box-shadow: 0 1px 1px rgba(0,0,0,0.08); }
         .message-bubble.ai { background-color: var(--ai-bubble-bg); border: 1px solid var(--ai-bubble-border); color: var(--text-color); border-bottom-left-radius: 5px; }
 
         .member-icon-large-container { display: flex; justify-content: center; margin-bottom: 25px; padding-top: 10px; }
@@ -126,7 +127,7 @@
             <main id="chat-main-scroll-area"><div id="chat-messages-container"></div></main>
             <div id="reply-suggestions-wrapper"><div id="reply-suggestions"></div></div>
             <footer id="chat-input-area">
-                <input type="text" id="message-input" placeholder="メッセージを入力...">
+                <input type="text" id="message-input" placeholder="メッセージを入力…">
                 <button id="send-message" title="送信"><img src="image/icon/button_send_mako.png" alt="送信"></button>
             </footer>
         </div>
@@ -176,7 +177,7 @@
     <script>
         // --- 定数・グローバル変数 ---
         const ICON_PATH = 'image/icon/';
-        const API_KEY = typeof MY_GEMINI_API_KEY !== 'undefined' ? MY_GEMINI_API_KEY : "YOUR_GEMINI_API_KEY_HERE"; // フォールバック
+        const API_KEY = typeof MY_GEMINI_API_KEY !== 'undefined' ? MY_GEMINI_API_KEY : "YOUR_GEMINI_API_KEY_HERE";
 
         const membersThemeData = {
             'mako':  { name: 'マコ', accentColor: '#E67E22', bgColor: '#fdf6e9', userBubbleBg: '#f0dcb3' },
@@ -353,7 +354,17 @@
         function renderReplySuggestions() {
             replySuggestionsDiv.innerHTML = '';
             const suggestions = commonSettingsData.dynamicSuggestions.slice(0, commonSettingsData.replySuggestionsCount);
-            suggestions.forEach(text => { const btn = document.createElement('button'); btn.className = 'suggestion-btn'; btn.textContent = text; btn.addEventListener('click', () => { messageInput.value += (messageInput.value ? ' ' : '') + text; messageInput.focus(); }); replySuggestionsDiv.appendChild(btn); });
+            suggestions.forEach(text => {
+                const btn = document.createElement('button');
+                btn.className = 'suggestion-btn';
+                btn.textContent = text;
+                btn.type = 'button';
+                btn.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    messageInput.value += (messageInput.value.trim() === '' ? '' : ' ') + text;
+                });
+                replySuggestionsDiv.appendChild(btn);
+            });
         }
         
         function renderMemberList() {
@@ -404,8 +415,8 @@
             settingsMemberIcon.src = ICON_PATH + (member.faceIconFile || 'default_face.png'); settingsMemberIcon.alt = member.name;
             if(settingsMemberIconWrapper) settingsMemberIconWrapper.style.borderColor = member.theme.accentColor;
             basicSettingsContainer.innerHTML = ''; sexualSettingsContainer.innerHTML = '';
-            const createSettingItem = (key, value) => {
-                 const itemDiv = document.createElement('div'); itemDiv.className = 'setting-item';
+            const createMemberSettingItem = (key, value) => { // renderMemberSettings内でのみ使うので別名に
+                const itemDiv = document.createElement('div'); itemDiv.className = 'setting-item';
                 const labelSpan = document.createElement('span'); labelSpan.className = 'label'; labelSpan.textContent = key; itemDiv.appendChild(labelSpan);
                 const valueDiv = document.createElement('div');
                 if (Array.isArray(value)) { valueDiv.className = 'value multi-value'; value.forEach(v => { const valSpan = document.createElement('span'); valSpan.textContent = v; valueDiv.appendChild(valSpan); }); }
@@ -417,8 +428,8 @@
                 itemDiv.appendChild(valueDiv);
                 const basicKeys = ['年齢', '一人称', '髪型', '出身', '特技', '話し方', '性格', 'メンバーカラー', '身長', '体重'];
                 (basicKeys.includes(key) ? basicSettingsContainer : sexualSettingsContainer).appendChild(itemDiv);
-            }; // createSettingItem 関数の定義を renderMemberSettings 内に移動またはグローバルに定義
-            for (const [key, value] of Object.entries(member.settings)) { createSettingItem(key, value); }
+            };
+            for (const [key, value] of Object.entries(member.settings)) { createMemberSettingItem(key, value); }
         }
         
         function generateFullPrompt() {
@@ -465,7 +476,7 @@
 
             const member = membersData[currentMemberId];
             let conversationHistoryForPrompt = chatHistory[currentMemberId].slice(-10).map(m => `${m.type === 'user' ? userProfileData.name : member.name}: ${m.text}`).join("\n");
-            const fullPrompt = generateFullPrompt() + `以下はこれまでの会話です。\n${conversationHistoryForPrompt}\n${member.name}:`; // AIに次の応答を促す
+            const fullPrompt = generateFullPrompt() + `以下はこれまでの会話です。\n${conversationHistoryForPrompt}\n${member.name}:`;
             console.log("---送信プロンプト---"); console.log(fullPrompt); console.log("---送信プロンプトここまで---");
 
             try {
@@ -489,7 +500,7 @@
         chatMenuBtn.addEventListener('click', () => { if (currentMemberId) { const promptText = generateFullPrompt(); promptDisplayMain.textContent = promptText; showScreen('prompt-display-screen'); } else { alert("先にメンバーを選択してください。");} });
         sendMessageBtn.addEventListener('click', handleSendMessage);
         messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !sendMessageBtn.disabled) handleSendMessage(); });
-        replySuggestionsDiv.addEventListener('click', (e) => { if (e.target.classList.contains('suggestion-btn')) { messageInput.value += (messageInput.value ? ' ' : '') + e.target.textContent; messageInput.focus(); }});
+        // replySuggestionsDiv のイベントリスナーは renderReplySuggestions 内で個別に設定
         settingsBackToChatBtn.addEventListener('click', () => { if (currentMemberId) showScreen('chat-screen'); else showScreen('talk-list-screen');});
         promptBackBtn.addEventListener('click', () => showScreen(lastActiveScreen || (currentMemberId ? 'chat-screen' : 'talk-list-screen')));
 
